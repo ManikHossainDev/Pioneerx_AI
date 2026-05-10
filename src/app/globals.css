@@ -2,24 +2,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 *{
   padding: 0;
   margin: 0;
   box-sizing: border-box;
-  
-  
- font-family: "DM Sans", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-weight: 400;
   font-style: normal;
 }
-
 .pagination-container {
   display: flex;
   justify-content: center;
   gap: 10px;
 }
-
 .pagination-container .page-item {
   display: flex;
   inline-size: 45px;
@@ -34,17 +29,13 @@
   font-weight: bold;
   transition: background-color 0.3s ease;
 }
-
 .pagination-container .page-item:hover {
   background-color: #d1d1d1;
 }
-
 .pagination-container .page-item.active {
   background-color: #3FB249;
   color: white;
 }
-
-
 .custom-class{
   background-color: b;
 }

@@ -1,180 +1,126 @@
 "use client";
-import { useState } from "react";
-import logo from "@/assets/logo/logo.png";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import ActiveLink from "./ActiveLink"; // Assuming this component works fine
 import Link from "next/link";
-import { Drawer, Button, Dropdown } from "antd";
-import { MenuOutlined } from "@ant-design/icons";
-import { useRouter } from "next/navigation";
-import { useAppDispatch } from "@/redux/hooks";
-import { logout } from "@/redux/features/auth/authSlice";
-
+import { Drawer, Button } from "antd";
 import { AiOutlineMenu } from "react-icons/ai";
+import { MoonOutlined, SunOutlined } from "@ant-design/icons";
+import logo from "@/assets/logo/logo.png";
+import { useTheme } from "next-themes";
 
 const navLink = [
-  {
-    href: "/",
-    label: "Discover",
-  },
-  {
-    href: "/Venues",
-    label: "Venues",
-  },
-  {
-    href: "/Services",
-    label: "Services",
-  },
-  {
-    href: "/My Events",
-    label: "My Events",
-  },
+  { href: "/", label: "Features" },
+  { href: "/modules", label: "Modules" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/reviews", label: "Reviews" },
 ];
 
 const Navbar = () => {
-  const router = useRouter();
-  const dispatch = useAppDispatch();
-  
-  const user = {
-    name: "John Doe",
-    avatar: "", // Replace with actual avatar URL
-    email: "john.doe@example.com",
-  };
-
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  const showDrawer = () => setIsDrawerOpen(true);
-  const closeDrawer = () => setIsDrawerOpen(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const handleLogout = () => {
-    // Dispatch logout action to clear Redux state and cookies
-    dispatch(logout());
-    // Redirect to login page
-    router.push('/login');
-  };
-
-  const menuItems = [
-    {
-      key: "3",
-      label: <div className="cursor-pointer px-4 py-1" onClick={handleLogout}>Logout</div>,
-    },
-  ];
+  if (!mounted) {
+    return null;
+  }
 
   return (
-    <nav>
-      <div className="lg:container flex justify-between items-center  py-2 px-3 ">
-        {/* logo */}
-        <Link href="/">
-          <Image
-            src={logo}
-            width={100}
-            height={100}
-            alt="logo"
-            className="rounded-md lg:mr-20 w-[80px] h-[80px]"
-          />
+    <nav className="w-full border-b border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800">
+      <div className="w-full xl:container mx-auto flex items-center justify-between px-4 py-3">
+
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-7 h-7  rounded-md flex items-center justify-center text-white text-sm font-semibold">
+            <Image src={logo} alt="" />
+          </div>
+          <span className="font-medium text-gray-900 dark:text-white text-sm">Pioneerx</span>
         </Link>
 
-        {/* Desktop Navigation Links */}
-        <ul className="hidden md:flex gap-1">
-          {navLink.map((link) => (
+        {/* Desktop Nav Links */}
+        <ul className="hidden md:flex items-center gap-6">
+          {navLink.map((link, i) => (
             <li key={link.href}>
-              <ActiveLink href={link.href} label={link.label} />
+              <Link
+                href={link.href}
+                className={`text-sm ${
+                  i === 0
+                    ? "text-purple-500 underline underline-offset-2"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                } transition-colors`}
+              >
+                {link.label}
+              </Link>
             </li>
           ))}
         </ul>
 
-        {/* Create job button */}
-        {user ? (
-          <div className="flex justify-between items-center mg:gap-4 lg:gap-8 gap-2">
-            {/* Create Job Button */}
-            <Link
-              href="#"
-              className="rounded-[4px] md:px-6 px-2 md:py-5 py-2  text-white border-none"
-            >
-              Switch to Hosting
-            </Link>
+        {/* Right Side Actions */}
+        <div className="hidden md:flex items-center gap-3">
+          {/* Sign In */}
+          <Link
+            href="/login"
+            className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition px-2"
+          >
+            Sign In
+          </Link>
 
-            {/* User Avatar Dropdown */}
-            <Dropdown menu={{ items: menuItems }} placement="top" arrow>
-              {user?.avatar && (
-                <div className="flex items-center gap-2 bg-white p-2 px-3 rounded-full cursor-pointer">
-                  <AiOutlineMenu className="w-6 h-6" /> {/* 6 × 4 = 24px */}
-                  <Image
-                    width={24}
-                    height={24}
-                    src={user.avatar}
-                    alt="User Image"
-                    className="rounded-full ring ring-[#d75b3fad]  w-8 h-8"
-                  />
-                </div>
-              )}
-            </Dropdown>
-          </div>
-        ) : (
-          <div>
-            <Link href="/login" className="w-full">
-              <Button>Login</Button>
-            </Link>
-          </div>
-        )}
+          {/* Get Started */}
+          <Link
+            href="/register"
+            className="text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded-md transition"
+          >
+            Get Started
+          </Link>
+        </div>
 
-        {/* Mobile Drawer Button */}
+        {/* Mobile Menu Button */}
         <Button
           type="text"
-          className="md:hidden"
-          icon={<MenuOutlined />}
-          onClick={showDrawer}
+          className="md:hidden dark:text-white"
+          icon={<AiOutlineMenu className="w-5 h-5" />}
+          onClick={() => setIsDrawerOpen(true)}
         />
-
-        {/* Drawer for Mobile Navigation */}
-        <Drawer
-          title="Menu"
-          placement="right"
-          onClose={closeDrawer}
-          open={isDrawerOpen}
-        >
-          <ul className="flex flex-col gap-4">
-            {navLink.map((link) => (
-              <li key={link.href}>
-                <ActiveLink href={link.href} label={link.label} />
-              </li>
-            ))}
-          </ul>
-          <div className="flex flex-col gap-4 mt-4">
-            {user.name ? (
-              <>
-                {/* <Link href="/profile">
-                  <button className="px-8 py-3 border border-red-500 text-red-500 rounded">
-                    Profile
-                  </button>
-                </Link> */}
-                <button 
-                  className="text-white bg-red-500 px-10 py-3 rounded"
-                  onClick={() => {
-                    dispatch(logout());
-                    router.push('/login');
-                  }}
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/login">
-                  <button className="text-white bg-red-500 hover:bg-red-500 px-10 py-3 rounded">
-                    Login
-                  </button>
-                </Link>
-                <Link href="/register">
-                  <button className="px-8 py-3 border border-red-500 text-red-500 rounded">
-                    Register
-                  </button>
-                </Link>
-              </>
-            )}
-          </div>
-        </Drawer>
       </div>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        title={<span className="dark:text-white">Menu</span>}
+        placement="right"
+        onClose={() => setIsDrawerOpen(false)}
+        open={isDrawerOpen}
+        className="dark:bg-gray-900"
+        styles={{ body: { backgroundColor: theme === 'dark' ? '#111827' : '#fff' }, header: { backgroundColor: theme === 'dark' ? '#111827' : '#fff', borderBottom: theme === 'dark' ? '1px solid #1f2937' : '1px solid #f0f0f0' } }}
+      >
+        <ul className="flex flex-col gap-4 mb-6">
+          {navLink.map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                className="text-sm text-gray-700 dark:text-gray-300 hover:text-purple-500 transition"
+                onClick={() => setIsDrawerOpen(false)}
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className="flex flex-col gap-3">
+          <Link href="/login">
+            <button className="w-full py-2 border border-purple-500 text-purple-500 rounded-md text-sm">
+              Sign In
+            </button>
+          </Link>
+          <Link href="/register">
+            <button className="w-full py-2 bg-purple-500 text-white rounded-md text-sm font-medium">
+              Get Started
+            </button>
+          </Link>
+        </div>
+      </Drawer>
     </nav>
   );
 };
