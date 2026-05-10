@@ -29,7 +29,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="w-full border-b border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800">
+    <nav className="w-full border-b border-gray-100  dark:border-gray-800">
       <div className="w-full xl:container mx-auto flex items-center justify-between px-4 py-3">
 
         {/* Logo */}
@@ -71,7 +71,7 @@ const Navbar = () => {
           {/* Get Started */}
           <Link
             href="/register"
-            className="text-sm font-medium text-white bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded-md transition"
+            className="text-sm font-medium text-[#615FFF] bg-[#FFFFFF] px-4 py-2 rounded-md transition"
           >
             Get Started
           </Link>
