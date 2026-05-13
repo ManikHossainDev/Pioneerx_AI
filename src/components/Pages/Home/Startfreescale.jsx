@@ -90,17 +90,22 @@ const CheckIcon = () => (
 
 const Startfreescale = () => {
   return (
-    <section className="w-full py-10 px-4">
-      <div className=" grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 xl:gap-10">
+    <section className="w-full h-full py-6 sm:py-10 px-2 sm:px-4 ">
+      {/*
+        Mobile:   1 column, scroll vertically
+        Tablet:   2 columns
+        Desktop:  4 columns
+      */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 xl:gap-10">
         {plans.map((plan, idx) => (
           <div
             key={idx}
-            className={`relative flex flex-col rounded-2xl p-5 border transition-all duration-300 bg-white/[0.06]  border-white/[0.12]`}
-            style={{ minHeight: 360 }}
+            className="relative flex flex-col rounded-2xl p-4 sm:p-5 border transition-all duration-300 bg-white/[0.06] border-white/[0.12]"
+            style={{ minHeight: 320 }}
           >
             {plan.popular && (
               <div className="absolute -top-[14px] left-1/2 -translate-x-1/2 z-10">
-                <span className="bg-gradient-to-r from-[#7C3AED] to-[#A855F7] text-white text-[11px] font-semibold px-4 py-[4px] rounded-full whitespace-nowrap tracking-wide">
+                <span className="bg-gradient-to-r from-[#7C3AED] to-[#A855F7] text-white text-[10px] sm:text-[11px] font-semibold px-3 sm:px-4 py-[3px] sm:py-[4px] rounded-full whitespace-nowrap tracking-wide">
                   Most Popular
                 </span>
               </div>
@@ -108,49 +113,51 @@ const Startfreescale = () => {
 
             <div className="mb-1">
               {plan.tier && (
-                <p className="text-[12px] font-medium text-[#B49EE8]/80 mb-1">
+                <p className="text-[11px] sm:text-[12px] font-medium text-[#B49EE8]/80 mb-1">
                   {plan.tier}
                 </p>
               )}
               {plan.subLabel && (
-                <p className="text-[11px] font-medium text-[#B49EE8]/75 mb-1">
+                <p className="text-[10px] sm:text-[11px] font-medium text-[#B49EE8]/75 mb-1">
                   {plan.subLabel}
                 </p>
               )}
             </div>
 
             <div className="flex items-baseline gap-1.5 mb-1">
-              <span className="text-[26px] font-bold text-white leading-none">
+              <span className="text-[22px] sm:text-[26px] font-bold text-white leading-none">
                 {plan.price}
               </span>
               {plan.per && (
-                <span className="text-[12px] text-[#C0AAFF]/70">{plan.per}</span>
+                <span className="text-[11px] sm:text-[12px] text-[#C0AAFF]/70">{plan.per}</span>
               )}
               {plan.oldPrice && (
-                <span className="text-[12px] text-[#9080B0]/50 line-through">
+                <span className="text-[11px] sm:text-[12px] text-[#9080B0]/50 line-through">
                   {plan.oldPrice}
                 </span>
               )}
             </div>
 
-            <p className="text-[11px] text-[#C8B8F0]/70 mb-4">{plan.forWho}</p>
+            <p className="text-[10px] sm:text-[11px] text-[#C8B8F0]/70 mb-3 sm:mb-4">
+              {plan.forWho}
+            </p>
 
-            <ul className="flex flex-col gap-2 mb-auto">
+            <ul className="flex flex-col gap-1.5 sm:gap-2 mb-auto">
               {plan.features.map((feat, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <CheckIcon />
-                  <span className="text-[12px] text-[#DDD0FF]/80 leading-[1.35]">
+                  <span className="text-[11px] sm:text-[12px] text-[#DDD0FF]/80 leading-[1.35]">
                     {feat}
                   </span>
                 </li>
               ))}
             </ul>
 
-            <button className="flex items-center justify-center gap-2.5 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-[#FFFFFF] border border-white font-bold text-sm px-7 md:py-3.5 py-2 rounded-full transition-colors duration-200 mt-5 w-full hover:from-indigo-500/35 hover:to-purple-500/35">
+            <button className="flex items-center justify-center gap-2 sm:gap-2.5 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-white border border-white font-bold text-xs sm:text-sm px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-full transition-colors duration-200 mt-4 sm:mt-5 w-full hover:from-indigo-500/35 hover:to-purple-500/35 active:scale-[0.98]">
               {plan.btnLabel}
               {plan.showArrow && (
-                <span className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-[#8E51FF33] flex items-center justify-center flex-shrink-0">
-                  <HiArrowRight size={12} color="white" />
+                <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#8E51FF33] flex items-center justify-center flex-shrink-0">
+                  <HiArrowRight size={10} color="white" />
                 </span>
               )}
             </button>

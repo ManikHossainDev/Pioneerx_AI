@@ -54,7 +54,7 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Nav Links */}
-        <ul className="hidden md:flex items-center gap-6 xl:gap-10 lg:ml-[70px] bg-[#FFFFFF1A] border-[1px] border-gray-500 p-2 rounded-full">
+        <ul className="hidden md:flex items-center gap-6 xl:gap-10 lg:ml-[85px] bg-[#FFFFFF1A] border-[1px] border-gray-500 p-2 rounded-full">
           {navLink.map((link) => (
             <li key={link.href}>
               <ActiveLink href={link.href} label={link.label} />

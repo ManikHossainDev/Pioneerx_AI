@@ -23,7 +23,7 @@ const HeroBannerSection = () => {
 
   return (
     <section
-      className="relative w-full h-full lg:h-screen bg-cover bg-center bg-no-repeat"
+      className="relative w-full h-full lg:h-screen bg-cover bg-center bg-no-repeat lg:mb-10"
       style={{
         backgroundImage: `url(${heroImage.src})`,
       }}
