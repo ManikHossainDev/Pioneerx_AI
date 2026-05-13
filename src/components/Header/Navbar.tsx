@@ -3,10 +3,11 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Drawer, Button } from "antd";
+import { usePathname } from "next/navigation";
 import { AiOutlineMenu } from "react-icons/ai";
-import { MoonOutlined, SunOutlined } from "@ant-design/icons";
 import logo from "@/assets/logo/logo.png";
 import { useTheme } from "next-themes";
+import ActiveLink from "./ActiveLink";
 
 const navLink = [
   { href: "/", label: "Features" },
@@ -19,56 +20,56 @@ const Navbar = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     setMounted(true);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (!mounted) {
-    return null;
-  }
+  if (!mounted) return null;
 
   return (
-    <nav className="w-full border-b border-gray-100  dark:border-gray-800">
-      <div className="w-full xl:container mx-auto flex items-center justify-between px-4 py-3">
-
+    <nav className={`w-full fixed top-2 left-0 z-50 transition-all duration-300`}>
+      <div
+        className={`w-full xl:container mx-auto flex items-center justify-between px-4 transition-all duration-300 ${
+          scrolled
+            ? "py-2 px-3 rounded-full backdrop-blur-[10px] border-b dark:border-gray-100 shadow-sm"
+            : "bg-transparent"
+        }`}
+      >
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7  rounded-md flex items-center justify-center text-white text-sm font-semibold">
+        <Link href="/" className="flex items-center gap-1">
+          <div className="w-7 h-7 rounded-md flex items-center justify-center text-white text-sm font-semibold">
             <Image src={logo} alt="" />
           </div>
-          <span className="font-medium text-gray-900 dark:text-white text-sm">Pioneerx</span>
+          <span className="font-bold text-gray-900 dark:text-white text-xl mt-2">
+            Pioneerx
+          </span>
         </Link>
 
         {/* Desktop Nav Links */}
-        <ul className="hidden md:flex items-center gap-6">
-          {navLink.map((link, i) => (
+        <ul className="hidden md:flex items-center gap-6 xl:gap-10 lg:ml-[70px] bg-[#FFFFFF1A] border-[1px] border-gray-500 p-2 rounded-full">
+          {navLink.map((link) => (
             <li key={link.href}>
-              <Link
-                href={link.href}
-                className={`text-sm ${
-                  i === 0
-                    ? "text-purple-500 underline underline-offset-2"
-                    : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                } transition-colors`}
-              >
-                {link.label}
-              </Link>
+              <ActiveLink href={link.href} label={link.label} />
             </li>
           ))}
         </ul>
 
         {/* Right Side Actions */}
         <div className="hidden md:flex items-center gap-3">
-          {/* Sign In */}
           <Link
             href="/login"
-            className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition px-2"
+            className="text-sm bg-[#FFFFFF1A] px-4 py-2 border rounded-tr-2xl rounded-bl-2xl rounded-tl-md rounded-br-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
           >
             Sign In
           </Link>
-
-          {/* Get Started */}
           <Link
             href="/register"
             className="text-sm font-medium text-[#615FFF] bg-[#FFFFFF] px-4 py-2 rounded-md transition"
@@ -93,29 +94,47 @@ const Navbar = () => {
         onClose={() => setIsDrawerOpen(false)}
         open={isDrawerOpen}
         className="dark:bg-gray-900"
-        styles={{ body: { backgroundColor: theme === 'dark' ? '#111827' : '#fff' }, header: { backgroundColor: theme === 'dark' ? '#111827' : '#fff', borderBottom: theme === 'dark' ? '1px solid #1f2937' : '1px solid #f0f0f0' } }}
+        width={160}
+        styles={{
+          body: {
+            backgroundColor: theme === "dark" ? "#000000" : "#fff",
+          },
+          header: {
+            backgroundColor: theme === "dark" ? "#000000" : "#fff",
+            borderBottom:
+              theme === "dark" ? "1px solid #1f2937" : "1px solid #f0f0f0",
+          },
+        }}
       >
         <ul className="flex flex-col gap-4 mb-6">
-          {navLink.map((link) => (
-            <li key={link.href}>
-              <Link
-                href={link.href}
-                className="text-sm text-gray-700 dark:text-gray-300 hover:text-purple-500 transition"
-                onClick={() => setIsDrawerOpen(false)}
-              >
-                {link.label}
-              </Link>
-            </li>
-          ))}
+          {navLink.map((link) => {
+            const isActive = pathname === link.href;
+            return (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className={`text-sm font-medium transition-colors duration-200 ${
+                    isActive
+                      ? "text-[#615FFF] font-semibold"         // ← matches desktop active (ActiveLink purple)
+                      : "text-gray-700 dark:text-gray-300 hover:text-[#615FFF] dark:hover:text-[#615FFF]"  // ← matches desktop inactive + hover
+                  }`}
+                  onClick={() => setIsDrawerOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
+
         <div className="flex flex-col gap-3">
           <Link href="/login">
-            <button className="w-full py-2 border border-purple-500 text-purple-500 rounded-md text-sm">
+            <button className="w-full py-2 border border-[#615FFF] text-[#615FFF] rounded-md text-sm">
               Sign In
             </button>
           </Link>
           <Link href="/register">
-            <button className="w-full py-2 bg-purple-500 text-white rounded-md text-sm font-medium">
+            <button className="w-full py-2 bg-[#615FFF] text-white rounded-md text-sm font-medium">
               Get Started
             </button>
           </Link>

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface IActiveProps {
   label: string;
@@ -7,10 +8,17 @@ interface IActiveProps {
 }
 
 const ActiveLink = ({ label, href }: IActiveProps) => {
+  const pathname = usePathname();
+  const isActive = pathname === href;
+
   return (
     <Link
       href={href}
-      className={`text-[17px] lg:p-4 p-2 text-white`}
+      className={`text-sm transition-colors ${
+        isActive
+          ? "text-[#615FFF] underline underline-offset-2"
+          : "text-[#FFFFFF] hover:text-[#615FFF] dark:hover:text-[#615FFF]"
+      }`}
     >
       {label}
     </Link>
