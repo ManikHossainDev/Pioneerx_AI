@@ -90,7 +90,7 @@ const CheckIcon = () => (
 
 const Startfreescale = () => {
   return (
-    <section className="w-full h-full py-6 sm:py-10 px-2 sm:px-4 ">
+    <section className="w-full h-full py-6 sm:py-10 px-1 md:px-4 ">
       {/*
         Mobile:   1 column, scroll vertically
         Tablet:   2 columns

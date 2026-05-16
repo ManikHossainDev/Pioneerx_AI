@@ -6,16 +6,56 @@ import React from "react";
 import businessneeds from '@/assets/giftfileall/businessneeds.gif'
 import Image from "next/image";
 import PoweredbyAI from "@/components/Pages/Home/PoweredbyAI";
+import EveryToolYour from "@/components/Pages/Home/Everytoolyour";
+import Buildwithpioneer from "@/components/Pages/Home/buildwithpioneer";
 
 const HomePage = () => {
   return (
     <section>
       <HeroBannerSection />
+
+       {/* Image + Text overlay container */}
+<div className="relative w-full h-full overflow-hidden backdrop-blur-sm">
+
+  {/* Background Image - fixed to container */}
+  <Image
+  width={500}
+  height={500}
+  src={businessneeds.src}
+  alt="business needs"
+  className="absolute -top-[28%] -left-[40%] w-full h-full object-center"
+  style={{ transform: "rotate(35deg)" }}
+  priority
+/>
+
+  {/* Black overlay */}
+  <div className="absolute inset-0 bg-black/30 z-0" />
+
+  {/* Content - এটাই height নির্ধারণ করবে */}
+  <div className="relative z-10">
+    <div className="flex items-start justify-center min-h-full  py-8 sm:py-12">
+      <div className="w-full xl:container mx-auto">
+
+        {/* Pricing section */}
+        <div className="mb-6 md:mb-7">
+          <Buildwithpioneer />
+        </div>
+
+        {/* Testimonials section */}
+        <div className="">
+          <EveryToolYour />
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
       
       <PoweredbyAI  />
 
       {/* Image + Text overlay container */}
-    <div className="relative w-full overflow-hidden pt-6 sm:pt-10">
+      <div className="relative w-full overflow-hidden pt-6 sm:pt-10 backdrop-blur-sm">
  
       {/* Background Image */}
       <Image
@@ -29,15 +69,15 @@ const HomePage = () => {
       />
  
       {/* Black overlay */}
-      <div className="absolute inset-0 bg-black/50 z-0" />
+      <div className="absolute inset-0 bg-black/30 z-0" />
  
       {/* Scrollable content on top */}
       <div className="absolute inset-0 z-10 overflow-y-auto scrollbar-hide">
-        <div className="flex items-start justify-center min-h-full px-3 sm:px-6 py-8 sm:py-12">
-          <div className="w-full xl:container mx-auto">
+        <div className="flex items-start justify-center min-h-full px-2 md:px-6 py-8 sm:py-12">
+          <div id="pricing" className="w-full xl:container mx-auto">
  
             {/* Pricing section */}
-            <div className="mb-6 sm:mb-10">
+            <div  className="mb-6 sm:mb-10">
               <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white text-center mb-2 px-4">
                 Start free, scale when ready
               </h1>
@@ -48,7 +88,7 @@ const HomePage = () => {
             </div>
  
             {/* Testimonials section */}
-            <div className="mb-4 sm:mb-6">
+            <div  className="mb-4  sm:mb-6">
               <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white text-center mb-1">
                 Founders love PioneerX
               </h1>
@@ -58,7 +98,7 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
 
       <Readytobuild />
     </section>

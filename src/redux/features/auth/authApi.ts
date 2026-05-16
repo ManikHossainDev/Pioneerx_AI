@@ -80,6 +80,13 @@ const authApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
+    ResetPassword: builder.mutation({
+      query: (data) => ({
+        url: `/auth/change-password-in-settings`,
+        method: "POST",
+        body: data,
+      }),  
+    }),
   }),
 });
 
@@ -94,4 +101,5 @@ export const {
   useGetSingleUserQuery,
   useGoogleLoginMutation,
   useGetAllServicesQuery,  
+  useResetPasswordMutation
 } = authApi;

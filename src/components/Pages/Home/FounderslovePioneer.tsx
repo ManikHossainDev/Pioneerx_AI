@@ -4,7 +4,15 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { Star } from "lucide-react";
 
-const testimonials = [
+interface Testimonial {
+  name: string;
+  role: string;
+  avatar: string;
+  quote: string;
+  rating: number;
+}
+
+const testimonials: Testimonial[] = [
   {
     name: "Sarah Chen",
     role: "Founder, NovaMint",
@@ -55,7 +63,12 @@ const testimonials = [
   },
 ];
 
-const StarRating = ({ rating, total = 5 }) => (
+interface StarRatingProps {
+  rating: number;
+  total?: number;
+}
+
+const StarRating = ({ rating, total = 5 }: StarRatingProps) => (
   <div className="flex items-center gap-1 mb-3">
     {Array.from({ length: total }).map((_, i) => (
       <Star
@@ -72,14 +85,15 @@ const StarRating = ({ rating, total = 5 }) => (
 );
 
 const FounderslovePioneer = () => {
-  const trackRef = useRef(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const track = trackRef.current;
-    if (!track) return;
+    if (!(track instanceof HTMLDivElement)) return;
+
     let pos = 0;
     let paused = false;
-    let raf;
+    let rafId: number;
 
     const step = () => {
       if (!paused) {
@@ -88,19 +102,30 @@ const FounderslovePioneer = () => {
         if (pos >= half) pos = 0;
         track.style.transform = `translateX(-${pos}px)`;
       }
-      raf = requestAnimationFrame(step);
+      rafId = requestAnimationFrame(step);
     };
 
-    track.addEventListener("mouseenter", () => { paused = true; });
-    track.addEventListener("mouseleave", () => { paused = false; });
-    // Touch support — pause on touch
-    track.addEventListener("touchstart", () => { paused = true; }, { passive: true });
-    track.addEventListener("touchend", () => {
+    const handleMouseEnter = () => { paused = true; };
+    const handleMouseLeave = () => { paused = false; };
+    const handleTouchStart = () => { paused = true; };
+    const handleTouchEnd = () => {
       setTimeout(() => { paused = false; }, 2000);
-    });
+    };
 
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
+    track.addEventListener("mouseenter", handleMouseEnter);
+    track.addEventListener("mouseleave", handleMouseLeave);
+    track.addEventListener("touchstart", handleTouchStart, { passive: true });
+    track.addEventListener("touchend", handleTouchEnd);
+
+    rafId = requestAnimationFrame(step);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      track.removeEventListener("mouseenter", handleMouseEnter);
+      track.removeEventListener("mouseleave", handleMouseLeave);
+      track.removeEventListener("touchstart", handleTouchStart);
+      track.removeEventListener("touchend", handleTouchEnd);
+    };
   }, []);
 
   const doubled = [...testimonials, ...testimonials];

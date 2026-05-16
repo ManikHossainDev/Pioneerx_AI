@@ -8,15 +8,17 @@ import { AiOutlineMenu } from "react-icons/ai";
 import logo from "@/assets/logo/logo.png";
 import { useTheme } from "next-themes";
 import ActiveLink from "./ActiveLink";
+import AuthModal from "./AuthModal";
 
 const navLink = [
   { href: "/", label: "Features" },
   { href: "/modules", label: "Modules" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/reviews", label: "Reviews" },
+  { href: "#pricing", label: "Pricing" },
+  { href: "#pricing", label: "Reviews" },
 ];
 
 const Navbar = () => {
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false); 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -39,7 +41,7 @@ const Navbar = () => {
       <div
         className={`w-full xl:container mx-auto flex items-center justify-between px-4 transition-all duration-300 ${
           scrolled
-            ? "py-2 px-3 rounded-full backdrop-blur-[10px] border-b dark:border-gray-100 shadow-sm"
+            ? "py-2 px-3 rounded-full backdrop-blur-[10px] border-b dark:border-gray-500 shadow-sm"
             : "bg-transparent"
         }`}
       >
@@ -64,12 +66,12 @@ const Navbar = () => {
 
         {/* Right Side Actions */}
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            href="/login"
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
             className="text-sm bg-[#FFFFFF1A] px-4 py-2 border rounded-tr-2xl rounded-bl-2xl rounded-tl-md rounded-br-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
           >
             Sign In
-          </Link>
+          </button>
           <Link
             href="/register"
             className="text-sm font-medium text-[#615FFF] bg-[#FFFFFF] px-4 py-2 rounded-md transition"
@@ -128,11 +130,12 @@ const Navbar = () => {
         </ul>
 
         <div className="flex flex-col gap-3">
-          <Link href="/login">
-            <button className="w-full py-2 border border-[#615FFF] text-[#615FFF] rounded-md text-sm">
-              Sign In
-            </button>
-          </Link>
+          <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="text-sm bg-[#FFFFFF1A] px-4 py-2 border rounded-tr-2xl rounded-bl-2xl rounded-tl-md rounded-br-md text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
+              >
+                Login
+              </button>
           <Link href="/register">
             <button className="w-full py-2 bg-[#615FFF] text-white rounded-md text-sm font-medium">
               Get Started
@@ -140,6 +143,10 @@ const Navbar = () => {
           </Link>
         </div>
       </Drawer>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
     </nav>
   );
 };

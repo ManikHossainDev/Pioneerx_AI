@@ -2,7 +2,7 @@ import { HiArrowRight } from "react-icons/hi2";
 
 const Readytobuild = () => {
  return (
-  <section className="px-2">
+  <section className="px-2 mb-20 xl:mb-32">
     <div className="w-full  my-10 xl:my-16 py-10 xl:py-12 xl:container border border-gray-500 rounded-xl">
     <h1 className="text-center text-white font-bold text-xl xl:text-4xl mb-2 md:mb-5 ">Ready to build your PioneerX? </h1>
     <p className="text-[#D4D4D4] text-center text-sm md:text-base mb-2 md:mb-5 ">Join thousands of founders who use Business OS to execute faster and scale smarter.</p>
