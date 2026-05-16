@@ -1,220 +1,224 @@
 "use client";
+
 import { useState } from "react";
 import Link from "next/link";
-import { MenuOutlined } from "@ant-design/icons";
-import { Drawer, Menu, Modal } from "antd";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useAppDispatch } from "@/redux/hooks";
-import { logout } from "@/redux/features/auth/authSlice";
-import usericon from "@/assets/Sidebar/user.png";
-import work from "@/assets/Sidebar/work.png";
-import job from "@/assets/Sidebar/vactor.png";
-import logout from "@/assets/Sidebar/Group.png";
+import {
+  LayoutDashboard,
+  Lightbulb,
+  Infinity,
+  LayoutGrid,
+  Globe,
+  Megaphone,
+  LineChart,
+  Settings2,
+  Scale,
+  PenLine,
+  BarChart2,
+  CircleDollarSign,
+  UserCog,
+  Crosshair,
+  Handshake,
+  Star,
+  PieChart,
+  Zap,
+  FlaskConical,
+  TrendingUp,
+  BarChart4,
+  BellRing,
+  Gem,
+  SearchCheck,
+  UserCircle,
+  Building2,
+  LogOut,
+} from "lucide-react";
 
+const menuData = [
+  {
+    section: "Core",
+    items: [
+      { Icon: Lightbulb, label: "Idea & Validation", href: "/idea-validation" },
+      { Icon: Infinity, label: "Branding", href: "/branding" },
+      { Icon: LayoutGrid, label: "Product / Service", href: "/product-service" },
+      { Icon: Globe, label: "Website & Tech", href: "/website-tech" },
+      { Icon: Megaphone, label: "Marketing", href: "/marketing" },
+      { Icon: LineChart, label: "Sales", href: "/sales" },
+      { Icon: Settings2, label: "Operations", href: "/operations" },
+      { Icon: Scale, label: "Legal & Finance", href: "/legal-finance" },
+      { Icon: PenLine, label: "Launch", href: "/launch" },
+      { Icon: BarChart2, label: "Scaling", href: "/scaling" },
+    ],
+  },
+  {
+    section: "Advanced",
+    items: [
+      { Icon: CircleDollarSign, label: "Financial Strategy", href: "/financial-strategy" },
+      { Icon: UserCog, label: "Personal Execution", href: "/personal-execution" },
+      { Icon: Crosshair, label: "Opportunity Engine", href: "/opportunity-engine" },
+      { Icon: Handshake, label: "Partnerships", href: "/partnerships" },
+      { Icon: Star, label: "Customer Experience", href: "/customer-experience" },
+      { Icon: PieChart, label: "Data & Analytics", href: "/data-analytics" },
+    ],
+  },
+  {
+    section: "Pro+ Growth",
+    items: [
+      { Icon: Zap, label: "Automation Systems", href: "/automation-systems" },
+      { Icon: FlaskConical, label: "Advanced Marketing Lab", href: "/advanced-marketing" },
+      { Icon: TrendingUp, label: "Revenue Expansion", href: "/revenue-expansion" },
+      { Icon: BarChart4, label: "Advanced Sales Systems", href: "/advanced-sales" },
+      { Icon: BellRing, label: "Growth Engine", href: "/growth-engine" },
+    ],
+  },
+  {
+    section: "Elite",
+    items: [
+      { Icon: Gem, label: "Wealth & Capital", href: "/wealth-capital" },
+      { Icon: SearchCheck, label: "Investment & Acquisition", href: "/investment-acquisition" },
+      { Icon: UserCircle, label: "Personal Brand", href: "/personal-brand" },
+      { Icon: Building2, label: "Multi-Business Mgmt", href: "/multi-business" },
+      { Icon: LogOut, label: "Exit & Legacy", href: "/exit-legacy" },
+    ],
+  },
+];
 
 const Sidebar = () => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
-  
-  const router = useRouter();
-  const dispatch = useAppDispatch();
-
-  const showDrawer = () => setDrawerOpen(true);
-  const closeDrawer = () => setDrawerOpen(false);
-
-  const showLogoutModal = () => setLogoutModalVisible(true);
-  const handleLogoutCancel = () => setLogoutModalVisible(false);
-  const handleLogoutConfirm = () => {
-    setLogoutModalVisible(false);
-    // Dispatch logout action to clear Redux state and cookies
-    dispatch(logout());
-    // Redirect to login page
-    router.push('/login');
-  };
-
-  const menuItems = [
-    {
-      key: "jobs",
-      label: (
-        <div className="flex items-center space-x-2">
-          <Image src={work} width={40} height={40} alt="Work Icon" />
-          <span>Job</span>
-        </div>
-      ),
-      children: [
-        {
-          key: "jobpost",
-          label: (
-            <Link
-              href="/jobpost"
-              className="py-3 flex justify-start space-x-1 items-center"
-              onClick={closeDrawer} // Close drawer when item is clicked
-            >
-              <h1 className="w-2 h-2 p-2 bg-red-500 rounded-full mr-2"></h1> Create Job Post
-            </Link>
-          ),
-        },
-        {
-          key: "viewjobs",
-          label: (
-            <Link
-              href="viewjobs"
-              className="py-3 flex justify-start space-x-1 items-center"
-              onClick={closeDrawer} // Close drawer when item is clicked
-            >
-              <h1 className="w-2 h-2 p-2 bg-red-500 rounded-full mr-2"></h1> View Jobs
-            </Link>
-          ),
-        },
-        {
-          key: "bidjob",
-          label: (
-            <Link
-              href="/bidjob"
-              className="py-3 flex justify-start space-x-1 items-center"
-              onClick={closeDrawer} // Close drawer when item is clicked
-            >
-              <h1 className="w-2 h-2 p-2 bg-red-500 rounded-full mr-2"></h1> Job Quotations
-            </Link>
-          ),
-        },
-        {
-          key: "invoicepaper",
-          label: (
-            <Link
-              href="/invoicepaper"
-              className="py-3 flex justify-start space-x-1 items-center"
-              onClick={closeDrawer} // Close drawer when item is clicked
-            >
-              <h1 className="w-2 h-2 p-2 bg-red-500 rounded-full mr-2"></h1> Invoices
-            </Link>
-          ),
-        },
-      ],
-    },
-  ];
+  // Default active item is Dashboard
+  const [activeItem, setActiveItem] = useState<string>("__dashboard__");
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   return (
-    <div className="w-full">
-      {/* Mobile Drawer Button */}
-      <button
-        type="button"
-        className="md:hidden   rounded fixed"
-        onClick={showDrawer}
+    <aside
+      className="w-full h-[95vh]  border-r border-[#2a2a3d] overflow-y-auto flex flex-col font-inter scrollbar-hide"
+    >
+      {/* Dashboard Header */}
+      <Link
+        href=""
+        className="block no-underline"
+        onClick={() => setActiveItem("__dashboard__")}
       >
-        <MenuOutlined />
-      </button>
-
-      {/* Drawer for Mobile */}
-      <Drawer
-        placement="left"
-        closable
-        onClose={closeDrawer}
-        open={drawerOpen}
-        className="p-0 rounded-md bg-[#FBE9E9] border border-[#F4BBBB]" // Set the background color for the drawer
-      >
-        <nav className="h-full p-4 space-y-4 bg-[#FBE9E9]"> {/* Full height and background color */}
-          <Link href="/profile">
-            <div
-              className="flex items-center ml-8 py-5 space-x-2"
-              onClick={closeDrawer}
-            >
-              <Image src={usericon} width={40} height={40} alt="User Icon" />
-              <span>My Profile</span>
-            </div>
-          </Link>
-          <Menu
-            mode="inline"
-            defaultSelectedKeys={["profile"]}
-            items={menuItems}
-            className="bg-[#FBE9E9]"
-          />
-          <Link href="/incompletework">
-            <div
-              className="flex items-center ml-8 py-7 space-x-2"
-              onClick={closeDrawer}
-            >
-              <Image src={job} width={35} height={35} alt="Job Icon" />
-              <span>Job History</span>
-            </div>
-          </Link>
-          <button onClick={showLogoutModal} className="w-full text-left">
-            <div className="flex items-center ml-8 py-7 space-x-2">
-              <Image src={logout} width={40} height={40} alt="Logout Icon" />
-              <span>Logout</span>
-            </div>
-          </button>
-        </nav>
-      </Drawer>
-
-      {/* Sidebar for Desktop */}
-      <aside className="hidden md:block bg-[#FBE9E9] w-64 px-4 rounded-md border border-[#F4BBBB]">
-        <div className="py-5">
-          <Link href="/profile">
-            <div className="flex ml-8 items-center space-x-2">
-              <Image src={usericon} width={40} height={40} alt="User Icon" />
-              <span>My Profile</span>
-            </div>
-          </Link>
-        </div>
-        <div className="py-5">
-          <Menu
-            mode="inline"
-            defaultSelectedKeys={["profile"]}
-            items={menuItems}
-            className="bg-[#FBE9E9] hover:bg-none w-full "
-          />
-        </div>
-        <div className="py-5">
-          <Link href="/incompletework">
-            <div className="flex items-center ml-8 space-x-2">
-              <Image src={job} width={32} height={32} alt="Job Icon" />
-              <span>Job Overview</span>
-            </div>
-          </Link>
-        </div>
-        <div className="pb-7 md:mt-32 lg:mt-32 xl:mt-48">
-          <button onClick={showLogoutModal} className="w-full text-left">
-            <div className="flex items-center ml-8 space-x-2">
-              <Image src={logout} width={40} height={40} alt="Logout Icon" />
-              <span>Logout</span>
-            </div>
-          </button>
-        </div>
-      </aside>
-
-      {/* Logout Confirmation Modal */}
-      <Modal
-          visible={logoutModalVisible}
-          onOk={handleLogoutConfirm}
-          onCancel={handleLogoutCancel}
-          centered
-          width={300}  // Set the width here (in pixels)
-          height={300} // Set the height here (in pixels), if necessary
-          footer={[
-            <button
-            key="cancel"
-            onClick={handleLogoutCancel}
-            className="border border-red-500 text-red-500 px-4 py-1 rounded hover:bg-red-100"
-          >
-            No
-          </button>,
-          <button
-            key="confirm"
-            onClick={handleLogoutConfirm}
-            className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 ml-5 mt-7"
-          >
-            Yes
-          </button>,
-          ]}
+        <div
+          onMouseEnter={() => setHoveredItem("__dashboard__")}
+          onMouseLeave={() => setHoveredItem(null)}
+          className={`
+            flex items-center gap-[9px]
+            px-[14px] py-[12px]
+            mx-[8px] mt-[8px] mb-[4px]
+            rounded-[7px]
+            cursor-pointer
+            transition-colors duration-150
+            ${
+              activeItem === "__dashboard__"
+                ? "bg-[rgba(124,111,247,0.18)]"
+                : hoveredItem === "__dashboard__"
+                ? "bg-[rgba(255,255,255,0.05)]"
+                : "bg-transparent"
+            }
+          `}
         >
-          <div>
-            <h1 className="text-3xl font-semibold">Logout</h1>
-            <p className="mb-2">Are you sure you want to log out?</p>
+          <LayoutDashboard
+            size={14}
+            strokeWidth={1.65}
+            className={`shrink-0 transition-colors duration-150 ${
+              activeItem === "__dashboard__" || hoveredItem === "__dashboard__"
+                ? "text-[#a78bfa]"
+                : "text-[#555872]"
+            }`}
+          />
+          <span
+            className={`
+              text-[12.5px]
+              md:text-[16px]
+              leading-[1.4]
+              tracking-[0.01em]
+              transition-colors duration-150
+              ${
+                activeItem === "__dashboard__" || hoveredItem === "__dashboard__"
+                  ? "text-[#ddddf0] font-medium"
+                  : "text-[#7e8199] font-normal"
+              }
+            `}
+          >
+            Dashboard
+          </span>
+        </div>
+      </Link>
+
+      {/* Divider below Dashboard */}
+      {/* <div className="mx-[14px] mb-[6px] border-b border-[#2a2a3d]" /> */}
+
+      {/* Menu Sections */}
+      <div className="px-[8px] pb-6">
+        {menuData.map((group) => (
+          <div key={group.section} className="mb-[4px]">
+            {/* Section Heading */}
+            <div className="text-[10px] md:text-[14px] font-semibold tracking-[0.08em] text-[#7c6ff7] uppercase pt-[8px] pb-[2px] px-[6px] select-none">
+              {group.section}
+            </div>
+
+            {/* Items */}
+            {group.items.map((item) => {
+              const key = `${group.section}|${item.label}`;
+              const isActive = activeItem === key;
+              const isHovered = hoveredItem === key;
+              const lit = isActive || isHovered;
+
+              return (
+                <Link
+                  key={key}
+                  href={item.href}
+                  className="block no-underline"
+                  onClick={() => setActiveItem(key)}
+                >
+                  <div
+                    onMouseEnter={() => setHoveredItem(key)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                    className={`
+                      flex items-center gap-[9px]
+                      px-[10px] py-[5px]
+                      mx-[2px] my-[1px]
+                      rounded-[6px]
+                      cursor-pointer
+                      transition-colors duration-150
+                      ${
+                        isActive
+                          ? "bg-[rgba(124,111,247,0.16)]"
+                          : isHovered
+                          ? "bg-[rgba(255,255,255,0.05)]"
+                          : "bg-transparent"
+                      }
+                    `}
+                  >
+                    <item.Icon
+                      size={20}
+                      strokeWidth={1.65}
+                      className={`shrink-0 transition-colors duration-150 ${
+                        lit ? "text-[#a78bfa]" : "text-[#555872]"
+                      }`}
+                    />
+                    <span
+                      className={`
+                        text-[12px]
+                        md:text-[16px]
+                        leading-[1.4]
+                        whitespace-nowrap
+                        overflow-hidden
+                        text-ellipsis
+                        tracking-[0.01em]
+                        transition-colors duration-150
+                        ${lit ? "text-[#ddddf0]" : "text-[#7e8199]"}
+                        ${isActive ? "font-medium" : "font-normal"}
+                      `}
+                    >
+                      {item.label}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
-        </Modal>
-    </div>
+        ))}
+      </div>
+    </aside>
   );
 };
 

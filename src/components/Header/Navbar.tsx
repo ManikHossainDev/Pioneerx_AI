@@ -73,7 +73,7 @@ const Navbar = () => {
             Sign In
           </button>
           <Link
-            href="/register"
+            href="/dashboard"
             className="text-sm font-medium text-[#615FFF] bg-[#FFFFFF] px-4 py-2 rounded-md transition"
           >
             Get Started
@@ -136,7 +136,7 @@ const Navbar = () => {
               >
                 Login
               </button>
-          <Link href="/register">
+          <Link href="/dashboard">
             <button className="w-full py-2 bg-[#615FFF] text-white rounded-md text-sm font-medium">
               Get Started
             </button>
