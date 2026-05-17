@@ -29,7 +29,7 @@ const HeroBannerSection = () => {
       }}
     >
       {/* Black overlay — GIF এর উপরে, text এর নিচে */}
-      <div className="absolute inset-0 bg-black/20 z-0 bg-blur-lg" />
+      <div className="absolute inset-0 bg-black/20 z-0 backdrop-blur-sm" />
 
       {/* Content — overlay এর উপরে */}
       <div className="relative z-10 flex flex-col items-center justify-start h-full pt-10 px-1 md:px-5">

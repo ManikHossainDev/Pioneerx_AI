@@ -7,26 +7,40 @@ import { useState } from "react";
 import { RiRobot2Line } from "react-icons/ri";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { LuUserRoundPlus } from "react-icons/lu";
+import { Menu } from "lucide-react";
 
-const DHeader = () => {
+interface DHeaderProps {
+  onMenuClick?: () => void;
+}
+
+const DHeader = ({ onMenuClick }: DHeaderProps) => {
   const [advisorHover, setAdvisorHover] = useState(false);
 
   return (
     <header className="w-full h-12 py-2 md:py-3 bg-[#0f1011] border-b border-[#bebfc0e0] flex items-center justify-between ">
+      <div className="flex items-center gap-4">
+        {/* Mobile Menu Icon */}
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden text-[#8a8a96] hover:text-white transition-colors"
+        >
+          <Menu size={24} />
+        </button>
 
-      {/* Left: Logo */}
-      <Link href="/" className="flex items-center gap-2 no-underline select-none">
-        <Image
-          src={logo}
-          alt="PioneerX Logo"
-          width={25}
-          height={25}
-          className="object-contain"
-        />
-        <span className="font-bold text-[16px] text-white tracking-[0.02em] font-sans">
-          PioneerX
-        </span>
-      </Link>
+        {/* Left: Logo */}
+        <Link href="/" className="flex items-center gap-2 no-underline select-none">
+          <Image
+            src={logo}
+            alt="PioneerX Logo"
+            width={25}
+            height={25}
+            className="object-contain"
+          />
+          <span className="font-bold text-[16px] text-white tracking-[0.02em] font-sans">
+            PioneerX
+          </span>
+        </Link>
+      </div>
 
       {/* Right: Actions */}
       <div className="flex items-center gap-1.5">

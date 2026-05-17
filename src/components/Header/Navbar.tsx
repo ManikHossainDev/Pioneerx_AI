@@ -12,7 +12,7 @@ import AuthModal from "./AuthModal";
 
 const navLink = [
   { href: "/", label: "Features" },
-  { href: "/modules", label: "Modules" },
+  { href: "#business", label: "Modules" },
   { href: "#pricing", label: "Pricing" },
   { href: "#pricing", label: "Reviews" },
 ];

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -30,6 +31,7 @@ import {
   UserCircle,
   Building2,
   LogOut,
+  X,
 } from "lucide-react";
 
 const menuData = [
@@ -81,20 +83,44 @@ const menuData = [
   },
 ];
 
-const Sidebar = () => {
-  // Default active item is Dashboard
-  const [activeItem, setActiveItem] = useState<string>("__dashboard__");
+interface SidebarProps {
+  isMobile?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
+  const pathname = usePathname();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
-  return (
+  const isDashboardActive = pathname === "/" || pathname === "/dashboard";
+
+  const sidebarContent = (
     <aside
-      className="w-full h-[95vh]  border-r border-[#2a2a3d] overflow-y-auto flex flex-col font-inter scrollbar-hide"
+      className={`
+        w-full h-full lg:h-[95vh] border-r border-[#bebfc0e0] overflow-y-auto flex flex-col font-inter scrollbar-hide bg-[#0f1011]
+        ${isMobile ? "pb-20" : ""}
+      `}
     >
+      {/* Mobile Close Button */}
+      {isMobile && (
+        <div className="flex justify-end p-4 lg:hidden">
+          <button
+            onClick={onClose}
+            className="text-[#7e8199] hover:text-white transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+      )}
+
       {/* Dashboard Header */}
       <Link
-        href=""
+        href="/dashboard"
         className="block no-underline"
-        onClick={() => setActiveItem("__dashboard__")}
+        onClick={() => {
+          if (isMobile && onClose) onClose();
+        }}
       >
         <div
           onMouseEnter={() => setHoveredItem("__dashboard__")}
@@ -107,7 +133,7 @@ const Sidebar = () => {
             cursor-pointer
             transition-colors duration-150
             ${
-              activeItem === "__dashboard__"
+              isDashboardActive
                 ? "bg-[rgba(124,111,247,0.18)]"
                 : hoveredItem === "__dashboard__"
                 ? "bg-[rgba(255,255,255,0.05)]"
@@ -119,7 +145,7 @@ const Sidebar = () => {
             size={14}
             strokeWidth={1.65}
             className={`shrink-0 transition-colors duration-150 ${
-              activeItem === "__dashboard__" || hoveredItem === "__dashboard__"
+              isDashboardActive || hoveredItem === "__dashboard__"
                 ? "text-[#a78bfa]"
                 : "text-[#555872]"
             }`}
@@ -132,7 +158,7 @@ const Sidebar = () => {
               tracking-[0.01em]
               transition-colors duration-150
               ${
-                activeItem === "__dashboard__" || hoveredItem === "__dashboard__"
+                isDashboardActive || hoveredItem === "__dashboard__"
                   ? "text-[#ddddf0] font-medium"
                   : "text-[#7e8199] font-normal"
               }
@@ -143,11 +169,8 @@ const Sidebar = () => {
         </div>
       </Link>
 
-      {/* Divider below Dashboard */}
-      {/* <div className="mx-[14px] mb-[6px] border-b border-[#2a2a3d]" /> */}
-
       {/* Menu Sections */}
-      <div className="px-[8px] pb-6">
+      <div className="px-[4px] pb-6">
         {menuData.map((group) => (
           <div key={group.section} className="mb-[4px]">
             {/* Section Heading */}
@@ -158,7 +181,7 @@ const Sidebar = () => {
             {/* Items */}
             {group.items.map((item) => {
               const key = `${group.section}|${item.label}`;
-              const isActive = activeItem === key;
+              const isActive = pathname === item.href;
               const isHovered = hoveredItem === key;
               const lit = isActive || isHovered;
 
@@ -167,7 +190,9 @@ const Sidebar = () => {
                   key={key}
                   href={item.href}
                   className="block no-underline"
-                  onClick={() => setActiveItem(key)}
+                  onClick={() => {
+                    if (isMobile && onClose) onClose();
+                  }}
                 >
                   <div
                     onMouseEnter={() => setHoveredItem(key)}
@@ -219,6 +244,31 @@ const Sidebar = () => {
         ))}
       </div>
     </aside>
+  );
+
+  if (!isMobile) {
+    return sidebarContent;
+  }
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 bg-black/50 z-[100] transition-opacity duration-300 lg:hidden ${
+          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={onClose}
+      />
+
+      {/* Drawer */}
+      <div
+        className={`fixed top-0 left-0 bottom-0 w-64 bg-[#0f1011] z-[101] transform transition-transform duration-300 ease-in-out lg:hidden ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {sidebarContent}
+      </div>
+    </>
   );
 };
 

@@ -80,7 +80,7 @@ const PoweredbyAI = () => {
         </div>
 
         {/* Cards Grid */}
-        <div className="block lg:hidden mt-1">
+        <div className=" block lg:hidden mt-1">
          <div className=" w-full xl:container mx-auto px-1 2 grid grid-cols-1 sm:grid-cols-2 gap-1">
           {cards.map((card, index) => (
             <Cards key={index} title={card.title} description={card.description} />

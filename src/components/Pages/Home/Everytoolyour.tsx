@@ -79,7 +79,7 @@ const tools = [
 
 const EveryToolYour = () => {
   return (
-    <div className="py-12">
+    <div id="business" className="py-12">
       {/* Header */}
       <h1 className="text-xl sm:text-2xl font-bold text-white text-center mb-2 tracking-tight">
         Every tool your business needs

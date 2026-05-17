@@ -15,7 +15,7 @@ const HomePage = () => {
       <HeroBannerSection />
 
        {/* Image + Text overlay container */}
-<div className="relative w-full h-full overflow-hidden backdrop-blur-sm">
+<div className="relative w-full h-full overflow-hidden px-1 xl:px-0">
 
   {/* Background Image - fixed to container */}
   <Image
@@ -29,7 +29,7 @@ const HomePage = () => {
 />
 
   {/* Black overlay */}
-  <div className="absolute inset-0 bg-black/30 z-0" />
+  <div className="absolute inset-0 bg-black/20 z-0 backdrop-blur-sm" />
 
   {/* Content - এটাই height নির্ধারণ করবে */}
   <div className="relative z-10">
@@ -55,7 +55,7 @@ const HomePage = () => {
       <PoweredbyAI  />
 
       {/* Image + Text overlay container */}
-      <div className="relative w-full overflow-hidden pt-6 sm:pt-10 backdrop-blur-sm">
+      <div className="relative w-full overflow-hidden pt-6 sm:pt-10 ">
  
       {/* Background Image */}
       <Image
@@ -63,13 +63,13 @@ const HomePage = () => {
         height={500}
         src={businessneeds.src}
         alt="business needs"
-        className="w-full h-[auto] min-h-[600px] sm:min-h-[800px] xl:h-[100vh] object-cover"
-        style={{ transform: "rotate(158deg)" }}
+        className="w-full  rotate-[100deg] md:rotate-[158deg] h-[100vh] object-center xl:object-cover "
+
         priority
       />
  
       {/* Black overlay */}
-      <div className="absolute inset-0 bg-black/30 z-0" />
+      <div className="absolute inset-0 bg-black/20 z-0 backdrop-blur-sm" />
  
       {/* Scrollable content on top */}
       <div className="absolute inset-0 z-10 overflow-y-auto scrollbar-hide">
@@ -94,12 +94,10 @@ const HomePage = () => {
               </h1>
               <FounderslovePioneer />
             </div>
- 
           </div>
         </div>
       </div>
       </div>
-
       <Readytobuild />
     </section>
   );
