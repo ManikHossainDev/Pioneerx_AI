@@ -40,7 +40,7 @@ const PoweredbyAI = () => {
       style={{ backgroundImage: `url(${PoweredBackground.src})` }}
     >
       {/* Black overlay */}
-      <div className="absolute inset-0 bg-black/20 z-0" />
+      <div className="absolute inset-0 bg-black/20 z-0 backdrop-blur-sm lg:backdrop-blur-none" />
 
       {/* Content wrapper — above overlay */}
       <div className="relative z-10">
@@ -52,7 +52,7 @@ const PoweredbyAI = () => {
         </p>
 
         {/* Mobile frame */}
-        <div
+        {/* <div
           className="xl:container mx-auto w-full flex justify-center items-center rounded-md lg:h-[65vh] bg-contain bg-center bg-no-repeat block lg:hidden"
           style={{ backgroundImage: `url(${frame2.src})` }}
         >
@@ -63,7 +63,7 @@ const PoweredbyAI = () => {
             src={Powered}
             alt="powered"
           />
-        </div>
+        </div> */}
 
         {/* Desktop frame */}
         <div
@@ -81,7 +81,7 @@ const PoweredbyAI = () => {
 
         {/* Cards Grid */}
         <div className=" block lg:hidden mt-1">
-         <div className=" w-full xl:container mx-auto px-1 2 grid grid-cols-1 sm:grid-cols-2 gap-1">
+         <div className=" w-full xl:container mx-auto px-2  grid grid-cols-1 md:grid-cols-2 gap-1">
           {cards.map((card, index) => (
             <Cards key={index} title={card.title} description={card.description} />
           ))}

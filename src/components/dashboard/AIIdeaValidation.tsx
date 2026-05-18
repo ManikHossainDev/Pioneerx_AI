@@ -1,104 +1,229 @@
-"use client"
-import { Sparkles } from "lucide-react";
-import { usePathname } from "next/navigation";
+"use client";
+
 import { useState } from "react";
+import {
+  ChevronRight,
+  LayoutGrid,
+  Link2,
+  Wrench,
+} from "lucide-react";
+
+const INITIAL_STEPS = [
+  {
+    id: 1,
+    title: "Write A One-Sentence Value Proposition",
+    desc: "Who is it for, what problem does it solve, how is it different",
+    done: false,
+  },
+  {
+    id: 2,
+    title: "Write A One-Sentence Value Proposition",
+    desc: "Who is it for, what problem does it solve, how is it different",
+    done: false,
+  },
+  {
+    id: 3,
+    title: "Write A One-Sentence Value Proposition",
+    desc: "Who is it for, what problem does it solve, how is it different",
+    done: false,
+  },
+  {
+    id: 4,
+    title: "Write A One-Sentence Value Proposition",
+    desc: "Who is it for, what problem does it solve, how is it different",
+    done: false,
+  },
+];
+
+const TOOLS = [
+  {
+    id: 1,
+    title: "Idea Scorer",
+    desc: "Rate your idea across 8 dimensions",
+  },
+  {
+    id: 2,
+    title: "Competitor Analyzer",
+    desc: "Map your competitive landscape",
+  },
+  {
+    id: 3,
+    title: "Demand Estimator",
+    desc: "Estimate market size and TAM",
+  },
+  {
+    id: 4,
+    title: "Interview Script Generator",
+    desc: "AI-generated discovery interview questions",
+  },
+];
+
+const SUGGESTED_LINKS = [
+  "Build your brand identity",
+  "Define your product/service",
+  "Create customer persona",
+  "Validate pricing strategy",
+];
+
 const AIIdeaValidation = () => {
-  const pathname = usePathname();
-  const lastSegment = pathname.split("/").filter(Boolean).pop() ?? "";
+  const [steps, setSteps] = useState(INITIAL_STEPS);
 
-  const [idea, setIdea] = useState("");
-  const [result, setResult] = useState("");
-  const [loading, setLoading] = useState(false);
+  const completed = steps.filter((step) => step.done).length;
 
-  const generateIdea = async () => {
-    if (!idea.trim()) return;
-    setLoading(true);
-    setResult("");
-    try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          messages: [
-            {
-              role: "user",
-              content: `You are a startup advisor. Validate this business idea and give a concise analysis in 4 sections:
-                1. 💡 Idea Summary
-                2. ✅ Strengths
-                3. ⚠️ Risks
-                4. 🚀 Suggested Next Steps
-
-                Keep each section to 2-3 bullet points. Be direct and actionable.
-
-                Business idea: ${idea}`,
-            },
-          ],
-        }),
-      });
-      const data = await res.json();
-      const text =
-        data.content
-          ?.filter((b: { type: string }) => b.type === "text")
-          .map((b: { text: string }) => b.text)
-          .join("") || "No response.";
-      setResult(text);
-    } catch {
-      setResult("⚠️ Error generating response. Please try again.");
-    }
-    setLoading(false);
+  const toggleStep = (id: number) => {
+    setSteps((prev) =>
+      prev.map((step) =>
+        step.id === id
+          ? { ...step, done: !step.done }
+          : step
+      )
+    );
   };
 
   return (
-    <div className="bg-[#111118] border border-[#2a2a3a] rounded-xl p-4 mb-3">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-1">
-        <span className="flex items-center gap-1.5 bg-[#6c5ce7] text-white text-[11px] md:text-[12px] font-semibold px-2.5 py-2 rounded-md">
-          <Sparkles size={12} />
-          AI Idea &amp; {lastSegment} Tool
-        </span>
+    <div className="">
+      <div className="">
+
+        {/* Action Steps */}
+        <section className="overflow-hidden rounded-[14px] border border-[#1B1C22]  shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
+
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-[#16171D] px-4 py-3">
+            <div className="flex items-center gap-2">
+              <LayoutGrid
+                size={14}
+                className="text-[#7C3AED]"
+              />
+
+              <h2 className="text-[13px] font-semibold text-white">
+                Action Steps
+              </h2>
+            </div>
+
+            <span className="text-[11px] text-[#666]">
+              {completed}/{steps.length} done
+            </span>
+          </div>
+
+          {/* Steps */}
+          <div className="space-y-[2px]  p-[6px]">
+            {steps.map((step) => (
+              <div
+                key={step.id}
+                onClick={() => toggleStep(step.id)}
+                className="cursor-pointer rounded-[10px] border border-[#1A1B22]  px-4 py-4 transition-all duration-200 hover:border-[#262733] hover:bg-[#0B0C12]"
+              >
+                <div className="flex items-start gap-3">
+
+                  {/* Radio */}
+                  <div
+                    className={`mt-[2px] h-[16px] w-[16px] rounded-full border transition-all ${
+                      step.done
+                        ? "border-[#7C3AED] bg-[#7C3AED]"
+                        : "border-white"
+                    }`}
+                  />
+
+                  {/* Content */}
+                  <div>
+                    <h3
+                      className={`text-[13px] font-semibold leading-[1.4] ${
+                        step.done
+                          ? "text-gray-500 line-through"
+                          : "text-white"
+                      }`}
+                    >
+                      {step.title}
+                    </h3>
+
+                    <p className="mt-1 text-[11px] leading-[1.5] text-[#6B7280]">
+                      {step.desc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Tools & Features */}
+        <section className="overflow-hidden rounded-[14px] mt-5 border border-[#1B1C22]  shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
+
+          {/* Header */}
+          <div className="flex items-center gap-2 border-b border-[#16171D] px-4 py-3">
+            <Wrench
+              size={14}
+              className="text-[#7C3AED]"
+            />
+
+            <h2 className="text-[13px] font-semibold text-white">
+              Tools & Features
+            </h2>
+          </div>
+
+          {/* Grid */}
+          <div className="grid grid-cols-1 gap-2 p-2 md:grid-cols-2">
+            {TOOLS.map((tool) => (
+              <div
+                key={tool.id}
+                className="rounded-[10px] border border-[#1B1C22]  p-4 transition-all duration-200 hover:border-[#2A2B36] hover:bg-[#0B0C12]"
+              >
+                <h3 className="text-[13px] font-semibold text-white">
+                  {tool.title}
+                </h3>
+
+                <p className="mt-2 text-[11px] leading-[1.5] text-[#6B7280]">
+                  {tool.desc}
+                </p>
+
+                <button className="mt-3 flex items-center gap-1 text-[11px] font-medium text-[#4F46E5] transition hover:text-[#6366F1]">
+                  Open
+                  <ChevronRight size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Suggested Links */}
+        <section className="overflow-hidden rounded-[14px] border border-[#1B1C22] mt-5 shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
+
+          {/* Header */}
+          <div className="flex items-center gap-2 border-b border-[#16171D] px-4 py-3">
+            <Link2
+              size={14}
+              className="text-[#7C3AED]"
+            />
+
+            <h2 className="text-[13px] font-semibold text-white">
+              Suggested Links
+            </h2>
+          </div>
+
+          {/* Links */}
+          <div className="p-2">
+            {SUGGESTED_LINKS.map((link, index) => (
+              <button
+                key={index}
+                className={`flex w-full items-center justify-between rounded-[10px] border border-[#1B1C22]  px-4 py-3 text-left transition-all hover:border-[#2A2B36] hover:bg-[#0B0C12] ${
+                  index !== SUGGESTED_LINKS.length - 1
+                    ? "mb-2"
+                    : ""
+                }`}
+              >
+                <span className="text-[12px] text-[#D1D5DB]">
+                  {link}
+                </span>
+
+                <ChevronRight
+                  size={14}
+                  className="text-[#6B7280]"
+                />
+              </button>
+            ))}
+          </div>
+        </section>
       </div>
-      <p className="text-[12px] text-[#888] mb-2.5">Describe your business idea</p>
-
-      {/* Textarea */}
-      <textarea
-        value={idea}
-        onChange={(e) => setIdea(e.target.value)}
-        placeholder='e.g., "A SaaS tool that helps freelancers automate client invoicing and follow-ups..."'
-        className="w-full bg-[#18181f] border border-[#2a2a3a] rounded-lg text-[#aaa] placeholder-[#555] text-[12px] p-3 resize-none min-h-[80px] outline-none focus:border-[#6c5ce7] transition-colors font-inherit"
-      />
-
-      {/* Button */}
-      <button
-        onClick={generateIdea}
-        disabled={loading}
-        className="mt-2.5 flex items-center gap-2 bg-[#6c5ce7] hover:bg-[#5a4bd1] disabled:opacity-60 text-white text-[13px] font-semibold px-5 py-2 rounded-lg transition-colors"
-      >
-        {loading ? (
-          <svg
-            className="animate-spin"
-            width={14}
-            height={14}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2.5}
-          >
-            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-          </svg>
-        ) : (
-          <Sparkles size={14} />
-        )}
-        {loading ? "Generating..." : "Generate with AI"}
-      </button>
-
-      {/* Result */}
-      {result && (
-        <div className="mt-3 bg-[#18181f] border border-[#2a2a3a] rounded-lg p-3 text-[12px] text-[#ccc] leading-relaxed whitespace-pre-wrap">
-          {result}
-        </div>
-      )}
     </div>
   );
 };

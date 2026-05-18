@@ -1,16 +1,16 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 
 import { useState } from "react";
 import {
   RefreshCw,
-  Globe,
   ArrowRight,
-  Palette,
-  Megaphone,
-  TrendingUp,
-  BarChart2,
+  Sparkles,
+  Save,
+  ChevronRight,
 } from "lucide-react";
 import AIIdeaValidation from "./AIIdeaValidation";
+import { usePathname } from "next/navigation";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type Priority = "High" | "Medium";
@@ -32,31 +32,62 @@ const initialTasks: Task[] = [
   { id: 6, label: "Review and optimize your top landing page CTA", priority: "High", completed: false },
 ];
 
-const sidebarTasks: string[] = Array(5).fill("Set up email automation sequence");
-
-const alerts: string[] = [
-  "Your email open rate dropped 12% this week. Consider testing a new subject line strategy.",
-  "Trend alert: AI automation tools in your industry are up 340% in search volume. Consider positioning.",
-  "You haven't updated your product pricing in 6 months. A price audit could unlock 15–30% more revenue.",
-];
-
-const quickAccess = [
-  { label: "Branding",  icon: Palette   },
-  { label: "Marketing", icon: Megaphone  },
-  { label: "Sales",     icon: TrendingUp },
-  { label: "Analytics", icon: BarChart2  },
+const nextSteps = [
+  "Build your brand identity",
+  "Define your product/service",
 ];
 
 // ─── Component ───────────────────────────────────────────────────────────────
 const AllAITaskList = () => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const pathname = usePathname();
+  const lastSegment = pathname.split("/").filter(Boolean).pop() ?? "";
 
+  const [idea, setIdea] = useState("");
+  const [result, setResult] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const generateIdea = async () => {
+    if (!idea.trim()) return;
+    setLoading(true);
+    setResult("");
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [
+            {
+              role: "user",
+              content: `You are a startup advisor. Validate this business idea and give a concise analysis in 4 sections:
+                1. 💡 Idea Summary
+                2. ✅ Strengths
+                3. ⚠️ Risks
+                4. 🚀 Suggested Next Steps
+
+                Keep each section to 2-3 bullet points. Be direct and actionable.
+
+                Business idea: ${idea}`,
+            },
+          ],
+        }),
+      });
+      const data = await res.json();
+      const text =
+        data.content
+          ?.filter((b: { type: string }) => b.type === "text")
+          .map((b: { text: string }) => b.text)
+          .join("") || "No response.";
+      setResult(text);
+    } catch {
+      setResult("⚠️ Error generating response. Please try again.");
+    }
+    setLoading(false);
+  };
   const completedCount = tasks.filter((t) => t.completed).length;
 
-  const toggleTask = (id: number) =>
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-    );
 
   const handleRegenerate = () =>
     setTasks(initialTasks.map((t) => ({ ...t, completed: false })));
@@ -89,118 +120,112 @@ const AllAITaskList = () => {
           </div>
 
          {/* AI Idea & Validation */}
-          <AIIdeaValidation />
-
-          {/* Task List */}
-          <div className="flex flex-col gap-2 overflow-y-auto scrollbar-hide">
-            {tasks.map((task) => (
-              <div
-                key={task.id}
-                onClick={() => toggleTask(task.id)}
-                className="flex items-center justify-between bg-[#111118]  border border-[#2a2a2a] rounded-lg px-4 py-3 gap-3 cursor-pointer hover:border-[#444] transition-colors"
-              >
-                {/* Left: circle + label */}
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-[18px] h-[18px] rounded-full border-2 flex-shrink-0 transition-all ${
-                      task.completed
-                        ? "bg-white border-white"
-                        : "border-[#555] hover:border-gray-300"
-                    }`}
-                  />
-                  <span
-                    className={`text-[13px] transition-colors ${
-                      task.completed ? "line-through text-[#555]" : "text-[#cccccc]"
-                    }`}
-                  >
-                    {task.label}
-                  </span>
-                </div>
-
-                {/* Right: priority badge */}
-                <span
-                  className={`text-[11px] font-semibold px-3 py-0.5 rounded-full flex-shrink-0 ${
-                    task.priority === "High"
-                      ? "bg-red-600 text-white"
-                      : "bg-[#2a2a2a] text-[#aaa] border border-[#444]"
-                  }`}
-                >
-                  {task.priority}
+          <div className="bg-[#111118] border border-[#2a2a3a] rounded-xl p-4 mb-3">
+              {/* Header */}
+              <div className="flex items-center gap-2 mb-1">
+                <span className="flex items-center gap-1.5 bg-[#6c5ce7] text-white text-[11px] md:text-[12px] font-semibold px-2.5 py-2 rounded-md">
+                  <Sparkles size={12} />
+                  AI Idea &amp; {lastSegment} Tool
                 </span>
               </div>
-            ))}
-          </div>
+              <p className="text-[12px] text-[#888] mb-2.5">Describe your business idea</p>
+
+              {/* Textarea */}
+              <textarea
+                value={idea}
+                onChange={(e) => setIdea(e.target.value)}
+                placeholder='e.g., "A SaaS tool that helps freelancers automate client invoicing and follow-ups..."'
+                className="w-full bg-[#18181f] border border-[#2a2a3a] rounded-lg text-[#aaa] placeholder-[#555] text-[12px] p-3 resize-none min-h-[80px] outline-none focus:border-[#6c5ce7] transition-colors font-inherit"
+              />
+
+              {/* Button */}
+              <button
+                onClick={generateIdea}
+                disabled={loading}
+                className="mt-2.5 flex items-center gap-2 bg-[#6c5ce7] hover:bg-[#5a4bd1] disabled:opacity-60 text-white text-[13px] font-semibold px-5 py-2 rounded-lg transition-colors"
+              >
+                {loading ? (
+                  <svg
+                    className="animate-spin"
+                    width={14}
+                    height={14}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                  </svg>
+                ) : (
+                  <Sparkles size={14} />
+                )}
+                {loading ? "Generating..." : "Generate with AI"}
+              </button>
+
+              {/* Result */}
+              {result && (
+                <div className="mt-3 bg-[#18181f] border border-[#2a2a3a] rounded-lg p-3 text-[12px] text-[#ccc] leading-relaxed whitespace-pre-wrap">
+                  {result}
+                </div>
+              )}
+            </div>
+         
+          <AIIdeaValidation />
+    
         </div>
 
         {/* ── RIGHT PANEL ────────────────────────────────────────────────── */}
         <div className="w-full md:w-[30%] flex flex-col gap-3 ">
-
-          {/* Sidebar task list */}
-          <div className="bg-[#111118]  border border-[#2a2a2a] rounded-xl p-4">
+          {/* Saved Outputs */}
+          <div className="bg-[#111118] border border-[#2a2a2a] rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Globe size={15} className="text-gray-500" />
+              <Save size={15} className="text-gray-500" />
               <span className="text-[13px] font-semibold text-white">
-                Today's AI Task List
+                Saved Outputs
               </span>
             </div>
-
-            <ul className="flex flex-col gap-2 ">
-              {sidebarTasks.map((task, i) => (
-                <li key={i} className="flex items-center gap-2 text-[12px] text-[#aaaaaa]">
-                  <ArrowRight size={13} className="text-[#777] flex-shrink-0" />
-                  {task}
-                </li>
-              ))}
-            </ul>
+            <p className="text-[12px] text-[#555] leading-relaxed">
+              Generate something and save it — it'll appear here for future reference.
+            </p>
           </div>
-
-          {/* Alerts & Opportunities */}
-          <div className="bg-[#111118]  border border-[#2a2a2a] rounded-xl p-4">
-            <h2 className="text-[10px] font-bold tracking-widest text-[#888] uppercase mb-3">
-              Alerts &amp; Opportunities
-            </h2>
-
-            {alerts.map((alert, i) => {
-            const hue = (i * 47) % 360; // golden-angle-ish spread
-            const borderColor = `hsl(${hue}, 70%, 60%)`;
-
-            return (
+    
+          {/* Next Steps */}
+          <div className="bg-[#111118] border border-[#2a2a2a] rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <ArrowRight size={15} className="text-gray-500" />
+              <span className="text-[13px] font-semibold text-white">
+                Next Steps
+              </span>
+            </div>
+            <div className="flex flex-col gap-2">
+              {nextSteps.map((step, i) => (
                 <div
-                key={i}
-                className="bg-[#242424] border mt-1 border-[#333] rounded-lg px-3 py-2 text-[11.5px] text-[#bbbbbb] leading-relaxed"
-                style={{ borderLeftColor: borderColor, borderLeftWidth: '2px' }}
+                  key={i}
+                  className="flex items-center gap-2 border border-[#2a2a2a] rounded-lg px-3 py-2 cursor-pointer hover:bg-[#1a1a24] transition-colors"
                 >
-                {alert}
+                  <ChevronRight size={13} className="text-[#777] flex-shrink-0" />
+                  <span className="text-[12px] text-[#cccccc]">{step}</span>
                 </div>
-            );
-            })}
-
-          </div>
-
-          {/* Quick Access */}
-          <div className="bg-[#111118]  border border-[#2a2a2a] rounded-xl p-4">
-            <h2 className="text-[10px] font-bold tracking-widest text-[#888] uppercase mb-3">
-              Quick Access
-            </h2>
-
-            <div className="grid grid-cols-2 gap-2">
-              {quickAccess.map(({ label, icon: Icon }) => (
-                <button
-                  key={label}
-                  className="flex flex-col items-center justify-center gap-2  border border-[#333] rounded-lg py-4 hover:bg-[#2e2e2e] hover:border-[#555] transition-colors"
-                >
-                  <Icon size={20} className="text-[#aaaaaa]" />
-                  <span className="text-[11.5px] font-medium text-[#cccccc]">
-                    {label}
-                  </span>
-                </button>
               ))}
             </div>
           </div>
-
-        </div>
+    
+          {/* AI Tip */}
+          <div className="bg-[#111118] border border-[#2a2a2a] rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles size={15} className="text-[#a78bfa]" />
+              <span className="text-[10px] text-white font-bold tracking-widest  uppercase">
+                AI TIP
+              </span>
+            </div>
+            <p className="text-[12px] text-[#aaaaaa] leading-relaxed">
+              Validate the problem, not the solution. 9 out of 10 startups fail
+              because they built something people didn't actually want.
+            </p>
+          </div>
       </div>
     </div>
+  </div>
   );
 }
 
