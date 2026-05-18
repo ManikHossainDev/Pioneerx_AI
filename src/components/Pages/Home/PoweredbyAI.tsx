@@ -2,7 +2,7 @@
 
 import PoweredBackground from "@/assets/giftfileall/poweredBackground.gif";
 import frame from "@/assets/giftfileall/frame.png";
-import frame2 from "@/assets/giftfileall/framess.png";
+// import frame2 from "@/assets/giftfileall/framess.png";
 import Powered from "@/assets/giftfileall/powered.gif";
 import Image from "next/image";
 import Cards from "./Cards";
