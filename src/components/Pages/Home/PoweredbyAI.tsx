@@ -47,7 +47,7 @@ const PoweredbyAI = () => {
         <h2 className="text-xl font-bold text-white text-center mb-2 xl:mb-3">
           Powered by AI at every step
         </h2>
-        <p className="text-center text-base text-[#D4D4D4] mb-3 xl:mb-7">
+        <p className="text-center text-sm md:text-base text-[#D4D4D4] mb-7">
           Not just a tool — an intelligent system that guides, automates, and helps you execute.
         </p>
 

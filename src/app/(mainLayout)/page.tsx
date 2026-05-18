@@ -23,7 +23,7 @@ const HomePage = () => {
   height={500}
   src={businessneeds.src}
   alt="business needs"
-  className="absolute -top-[28%] -left-[40%] w-full h-full object-center"
+  className="absolute -top-[28%] -left-[40%] w-full h-full object-center xl:mt-16"
   style={{ transform: "rotate(35deg)" }}
   priority
 />

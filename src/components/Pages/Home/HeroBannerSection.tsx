@@ -43,7 +43,7 @@ const HeroBannerSection = () => {
         </div>
 
         {/* Heading */}
-        <h1 className="text-center font-extrabold text-white leading-tight tracking-tight text-md md:text-6xl lg:text-7xl mb-5 xl:mb-7">
+        <h1 className="text-center font-extrabold text-white leading-tight tracking-tight text-md md:text-6xl lg:text-7xl mt-5 md:mb-5 xl:mb-7">
           Build, Run, and Scale
           <br />
           <span className="font-extrabold text-white leading-tight tracking-tight text-md md:text-6xl lg:text-7xl">Your Business</span>{" "}
@@ -51,22 +51,22 @@ const HeroBannerSection = () => {
         </h1>
 
         {/* Subtext */}
-        <p className="text-center text-white/60 text-xs md:text-base xl:text-md w-full md:max-w-xl leading-relaxed mb-3 md:mb-9">
+        <p className="text-center text-white/60 text-[11px] md:text-base xl:text-md w-full md:max-w-xl leading-relaxed mt-2  md:mb-9">
           AI-powered tools and systems to turn your idea into a real business
-          and scale it. From validation to wealth - every stage, every tool,
+          and scale it. From validation to wealth  every stage, every tool,
           one OS.
         </p>
 
         {/* CTA Button */}
-        <button className="flex items-center gap-2.5 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-[#FFFFFF] border border-white font-bold text-sm px-7 md:py-3.5 py-1 rounded-full transition-colors duration-200 mb-2 md:mb-5 xl:mb-8">
+        <button className="flex items-center gap-2.5 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-[#FFFFFF] border border-white font-bold text-[10px] md:text-sm px-7 md:py-3.5 py-1 rounded-full transition-colors duration-200 mt-5 md:mb-5 xl:mb-8">
           Start Building
-          <span className="w-5 h-5 md:w-7 md:h-7 rounded-full bg-[#8E51FF33] flex items-center justify-center">
+          <span className="w-4 h-4 md:w-7 md:h-7 rounded-full bg-[#8E51FF33] flex items-center justify-center">
             <HiArrowRight size={14} color="white" />
           </span>
         </button>
 
         {/* Trust line */}
-        <p className="text-white/45 text-xs md:text-lg flex items-center sm:gap-1 md:gap-2.5 mb-2 md:mb-14">
+        <p className="text-white/45 text-xs md:text-lg flex items-center sm:gap-1 md:gap-2.5 my-5 md:mb-14">
           <span>Free to start</span>
           <span className="text-white/25">·</span>
           <span>No credit card required</span>
@@ -75,7 +75,7 @@ const HeroBannerSection = () => {
         </p>
 
         {/* Feature Cards */}
-        <div className="grid grid-cols-3 gap-1 md:gap-3 xl:gap-5 w-full md:max-w-2xl mb-5">
+        <div className="grid grid-cols-3 gap-1 md:gap-3 xl:gap-5 w-full md:max-w-2xl mt-7 ">
           {cards.map((card) => (
             <div
               key={card.title}
