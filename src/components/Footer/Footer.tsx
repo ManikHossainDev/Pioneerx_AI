@@ -18,20 +18,31 @@ const Footer = () => {
       <div className="relative z-10 xl:container mx-auto px-6 pt-10 pb-8 border-b border-white/10 grid grid-cols-2  md:grid-cols-5">
 
         {/* Brand / Logo */}
-        <div className="">
-          <Link href="/" className="flex items-center gap-2 mb-3">
-            <div className="w-7 h-7 rounded-md flex items-center justify-center text-white text-sm font-semibold">
-              <Image src={logo} alt="Pioneerx logo" />
-            </div>
-            <span className="font-bold text-white text-xl">Pioneerx</span>
-          </Link>
-          <p className="text-xs md:text-sm text-gray-400 leading-relaxed ">
-             The Entrepreneurial Operating System (EOS) is a comprehensive framework designed to help entrepreneurs  strengthen six key components
-             <span className="hidden xl:block">
-               key components—Vision, People, Data, Issues, Process, and Traction—to gain control, focus, and growth
-             </span>
-          </p>
-        </div>
+        <div className="w-[80%]">
+  <Link href="/" className="flex items-center gap-2 mb-3">
+    <div className="w-7 h-7 rounded-md flex items-center justify-center text-white text-sm font-semibold">
+      <Image src={logo} alt="PioneerX logo" />
+    </div>
+    <span className="font-bold text-white text-xl">PioneerX</span>
+  </Link>
+  <p className="text-xs md:text-base text-gray-400 leading-relaxed mb-4">
+    The complete operating system for modern entrepreneurs.
+  </p>
+  <ul className="space-y-1.5">
+    <li className="flex items-start gap-2 text-xs md:text-base text-gray-400">
+      <span className="mt-1 text-gray-500">•</span>
+      <span>We are not giving licensed financial/legal/tax advice</span>
+    </li>
+    <li className="flex items-start gap-2 text-xs md:text-base text-gray-400">
+      <span className="mt-1 text-gray-500">•</span>
+      <span>Results are not guaranteed</span>
+    </li>
+    <li className="flex items-start gap-2 text-xs md:text-base text-gray-400">
+      <span className="mt-1 text-gray-500">•</span>
+      <span>Users are responsible for decisions</span>
+    </li>
+  </ul>
+</div>
 
         {/* Product */}
         <div className="flex justify-end ">

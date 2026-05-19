@@ -9,24 +9,24 @@ import Cards from "./Cards";
 
 const cards = [
   {
-    title: "Idea & Validation",
+    title: "Creative Strategy & Marketing",
     description:
-      "Your AI knows your business stage, goals, and history. It generates tailored strategies, not generic advice.",
+      "Generates business ideas, marketing campaigns, content strategies, and customer engagement plans.",
   },
   {
-    title: "Idea & Validation",
+    title: "Deep Thinking & Analysis",
     description:
-      "Your AI knows your business stage, goals, and history. It generates tailored strategies, not generic advice.",
+      "Handles research, long-form reasoning, business planning, and intelligent decision support.",
   },
   {
-    title: "Idea & Validation",
+    title: "Real-Time Intelligence",
     description:
-      "Your AI knows your business stage, goals, and history. It generates tailored strategies, not generic advice.",
+      "Connects current trends, live information, and productivity workflows to keep your business ahead.",
   },
   {
-    title: "Idea & Validation",
+    title: "Other Popular AI Systems",
     description:
-      "Your AI knows your business stage, goals, and history. It generates tailored strategies, not generic advice.",
+      "Our platform intelligently chooses and combines the best AI responses to deliver the most effective business solutions.",
   },
 ];
 

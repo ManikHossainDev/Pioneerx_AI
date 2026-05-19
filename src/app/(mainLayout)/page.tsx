@@ -35,9 +35,14 @@ const HomePage = () => {
   <div className="relative z-10">
     <div className="flex items-start justify-center min-h-full  py-8 sm:py-12">
       <div className="w-full xl:container mx-auto">
-
         {/* Pricing section */}
         <div className="mb-6 md:mb-7">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white text-center mb-2 px-4">
+                 Meet The AI Co-Founder Every Entrepreneur Needs
+              </h1>
+              <p className="text-center text-sm sm:text-base text-[#D4D4D4] px-4 mb-5 md:mb-10">
+                 Generate business ideas, build strategies, automate marketing, and scale faster with your AI business assistant.
+              </p>
           <Buildwithpioneer />
         </div>
 
