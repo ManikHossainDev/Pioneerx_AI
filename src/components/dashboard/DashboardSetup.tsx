@@ -1,24 +1,29 @@
-const phases = [
-  "Idea", "Validation", "Setup", "Launch", "Growth", "Scale", "Expansion", "Wealth"
-];
+import {
+  BUSINESS_PHASES,
+  PHASE_LABELS,
+  type BusinessPhase,
+} from "@/types/businessProfile";
 
-const currentPhase = 3; // Setup = phase 3
+interface DashboardSetupProps {
+  currentPhase?: BusinessPhase;
+}
 
-const DashboardSetup = () => {
+const DashboardSetup = ({ currentPhase = "IDEA" }: DashboardSetupProps) => {
+  const phaseIndex = BUSINESS_PHASES.indexOf(currentPhase);
+  const currentPhaseNumber = phaseIndex >= 0 ? phaseIndex + 1 : 1;
+  const currentPhaseLabel = PHASE_LABELS[currentPhase] ?? "Idea";
+
   return (
     <div className="bg-[#111118] border border-[#2a2a3a] rounded-2xl px-6 pt-4 pb-6 w-full font-sans">
-
-      {/* Header Row */}
       <div className="flex justify-between items-start mb-5">
         <div>
           <p className="text-[#6b6b8a] text-[11px] uppercase tracking-widest mb-1">
             Business Phase
           </p>
-          <h2 className="text-white text-lg font-semibold">Setup</h2>
+          <h2 className="text-white text-lg font-semibold">{currentPhaseLabel}</h2>
         </div>
 
         <div className="flex items-center gap-1.5 text-[#6b6b8a] text-xs mt-1">
-          {/* Trophy Icon */}
           <svg
             width="20"
             height="20"
@@ -36,33 +41,29 @@ const DashboardSetup = () => {
             <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
             <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
           </svg>
-          Phase 3 Of 8
+          Phase {currentPhaseNumber} Of {BUSINESS_PHASES.length}
         </div>
       </div>
 
-      {/* Progress Track */}
       <div className="relative">
-
-        {/* Background track */}
         <div className="absolute top-[3px] left-0 right-0 h-[7px] bg-[#2a2a3a] rounded-full" />
 
-        {/* Filled gradient track */}
         <div
           className="absolute top-[3px] left-0 h-[7px] rounded-full bg-gradient-to-r from-violet-700 to-violet-400"
-          style={{ width: `${((currentPhase - 1) / (phases.length - 1)) * 100}%` }}
+          style={{
+            width: `${((currentPhaseNumber - 1) / (BUSINESS_PHASES.length - 1)) * 100}%`,
+          }}
         />
 
-        {/* Dots + Labels */}
         <div className="relative flex justify-between">
-          {phases.map((phase, i) => {
+          {BUSINESS_PHASES.map((phase, i) => {
             const phaseNum = i + 1;
-            const isCompleted = phaseNum < currentPhase;
-            const isCurrent = phaseNum === currentPhase;
-            const isFuture = phaseNum > currentPhase;
+            const isCompleted = phaseNum < currentPhaseNumber;
+            const isCurrent = phaseNum === currentPhaseNumber;
+            const isFuture = phaseNum > currentPhaseNumber;
 
             return (
               <div key={phase} className="flex flex-col items-center gap-2.5">
-                {/* Dot */}
                 <div
                   className={`w-3.5 h-3.5 rounded-full flex-shrink-0 transition-all duration-300
                     ${isCompleted ? "bg-violet-700" : ""}
@@ -71,13 +72,12 @@ const DashboardSetup = () => {
                   `}
                 />
 
-                {/* Label */}
                 <span
                   className={`text-[11px] whitespace-nowrap
                     ${isCompleted || isCurrent ? "text-[#d0d0e0]" : "text-[#4a4a5a]"}
                   `}
                 >
-                  {phase}
+                  {PHASE_LABELS[phase]}
                 </span>
               </div>
             );

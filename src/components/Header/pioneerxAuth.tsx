@@ -12,6 +12,7 @@ import {
   useVerifyEmailMutation,
 } from "@/redux/features/auth/authApi";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ImSpinner6 } from "react-icons/im";
 import { IoEyeOutline, IoEyeOffOutline, IoArrowBackOutline } from "react-icons/io5";
 import { HiLightBulb } from "react-icons/hi";
@@ -20,6 +21,14 @@ import OTPInput from "react-otp-input";
 import { toast } from "sonner";
 import { useAppDispatch } from "@/redux/hooks";
 import { setUser } from "@/redux/features/auth/authSlice";
+import { persistAuthSession } from "@/lib/authSession";
+import GoogleAuthButton from "@/components/Pages/Auth/shared/GoogleAuthButton";
+import MagicLinkForm from "@/components/Pages/Auth/shared/MagicLinkForm";
+import AuthDivider from "@/components/Pages/Auth/shared/AuthDivider";
+import { useUpdateActiveProfileMutation } from "@/redux/api/businessProfileApi";
+import { signupStageToPhase } from "@/types/businessProfile";
+import { userFromToken } from "@/utils/jwt";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface SignupData {
@@ -155,72 +164,26 @@ const LoginScreen = ({
   onNavigate: (step: string) => void;
   onClose?: () => void;
 }) => {
-  const [fields, setFields] = useState({ email: "", password: "" });
-  const [login, { isLoading }] = useLoginMutation?.() ?? [() => {}, {}];
-  const dispatch = useAppDispatch();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await login({ email: fields.email, password: fields.password }).unwrap();
-      if (res?.statusCode === 200) {
-        dispatch(setUser({ user: res.data, token: res.tokens.accessToken }));
-        toast.success("Logged in successfully");
-        onClose?.();
-      }
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Something went wrong during login");
-    }
-  };
-
   return (
     <Card>
       <PioneerXLogo />
       <h2 className="text-2xl font-bold text-white text-center mb-1">Sign In</h2>
       <p className="text-[#6b6a8a] text-xs text-center mb-6">
-        Put correct information to get access
+        Enter your email to log in
       </p>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <FormLabel>Email</FormLabel>
-          <input
-            type="email"
-            className={inputClass}
-            placeholder="Enter your email"
-            value={fields.email}
-            onChange={(e) => setFields({ ...fields, email: e.target.value })}
-          />
-        </div>
-        <div>
-          <FormLabel>Password</FormLabel>
-          <PasswordInput
-            value={fields.password}
-            placeholder="Enter your password"
-            onChange={(e) => setFields({ ...fields, password: e.target.value })}
-          />
-        </div>
+      <MagicLinkForm variant="modal" />
 
-        <div className="text-right -mt-2">
-          <button
-            type="button"
-            className="text-[#7C6FE0] text-xs"
-            onClick={() => onNavigate(STEPS.FORGOT)}
-          >
-            Forgot password?
-          </button>
-        </div>
+      {/* Password login — disabled for now
+      const router = useRouter();
+      const [fields, setFields] = useState({ email: "", password: "" });
+      ...
+      <form onSubmit={handleSubmit}>...</form>
+      */}
 
-        <button type="submit" disabled={isLoading as boolean} className={primaryBtn}>
-          {isLoading ? (
-            <>
-              <ImSpinner6 className="animate-spin size-4" /> Signing in...
-            </>
-          ) : (
-            <>Login</>
-          )}
-        </button>
-      </form>
+      <AuthDivider />
+
+      <GoogleAuthButton />
 
       <p className="text-center text-xs text-[#6b6a8a] mt-5">
         Don&apos;t have an account?{" "}
@@ -328,6 +291,8 @@ const BusinessProfileScreen = ({
   const [stage, setStage] = useState<"idea" | "early" | "scaling" | "">("");
 
   const [register, { isLoading }] = useRegisterMutation();
+  const [updateActiveProfile] = useUpdateActiveProfileMutation();
+  const dispatch = useAppDispatch();
 
   const stages = [
     { key: "idea", label: "Idea", Icon: HiLightBulb },
@@ -345,25 +310,36 @@ const BusinessProfileScreen = ({
     }
 
     try {
-      // Single register call with all data combined
-      const payload = {
+      const tokens = await register({
         name: signupData.name,
         email: signupData.email,
         password: signupData.password,
-        ...(businessName && { businessName }),
-        ...(industry && { industry }),
-        ...(stage && { businessStage: stage }),
-      };
+      }).unwrap();
 
-      const res = await register(payload).unwrap();
+      dispatch(
+        setUser({
+          user: {
+            ...userFromToken(tokens.access_token, signupData.email),
+            name: signupData.name,
+          },
+          token: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+        })
+      );
 
-      if (res?.statusCode === 201) {
-        localStorage.setItem("verify_email", signupData.email);
-        toast.success("Account created! Please verify your email.");
-        onNavigate(STEPS.VERIFY_ACCOUNT_OTP);
+      if (businessName || industry || stage) {
+        await updateActiveProfile({
+          ...(businessName && { businessName }),
+          ...(industry && { industry }),
+          ...(stage && { currentPhase: signupStageToPhase(stage) }),
+        }).unwrap();
       }
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to create account");
+
+      localStorage.setItem("verify_email", signupData.email);
+      toast.success("Account created! Please verify your email.");
+      onNavigate(STEPS.VERIFY_ACCOUNT_OTP);
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to create account"));
     }
   };
 

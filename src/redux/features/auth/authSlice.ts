@@ -15,6 +15,7 @@ export type TUser = {
 type TAuthState = {
   user: TUser | null;
   token: string | null;
+  refreshToken: string | null;
 };
 
 // Initialize state from cookies if available
@@ -27,9 +28,14 @@ const getTokenFromCookies = () => {
   return getFromCookies('token');
 };
 
+const getRefreshTokenFromCookies = () => {
+  return getFromCookies("refreshToken");
+};
+
 const initialState: TAuthState = {
   user: getUserFromCookies(),
   token: getTokenFromCookies(),
+  refreshToken: getRefreshTokenFromCookies(),
 };
 
 // Create the slice
@@ -38,24 +44,28 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setUser: (state, action) => {
-      const { user, token } = action.payload;
+      const { user, token, refreshToken } = action.payload;
       state.user = user;
       state.token = token;
-      
-      // Store user and token in cookies
+      state.refreshToken = refreshToken ?? null;
+
       if (user) {
-        setToCookies('user', JSON.stringify(user));
+        setToCookies("user", JSON.stringify(user));
       }
       if (token) {
-        setToCookies('token', token);
+        setToCookies("token", token);
+      }
+      if (refreshToken) {
+        setToCookies("refreshToken", refreshToken);
       }
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
-      // Remove from cookies
-      removeFromCookies('user');
-      removeFromCookies('token');
+      state.refreshToken = null;
+      removeFromCookies("user");
+      removeFromCookies("token");
+      removeFromCookies("refreshToken");
     },
   },
 });

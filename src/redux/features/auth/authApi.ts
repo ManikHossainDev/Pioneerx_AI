@@ -1,14 +1,35 @@
-
 import { baseApi } from "@/redux/api/baseApi";
+import type { AuthTokens, AuthTokensResponse } from "@/types/auth";
+
+type MagicLinkResponse = { message: string };
 
 const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation({
+    login: builder.mutation<AuthTokens, { email: string; password: string }>({
       query: (data) => ({
-        url: "/api/v1/auth/login",
+        url: "/auth/login",
         method: "POST",
         body: data,
       }),
+      transformResponse: (res: AuthTokensResponse) => res.data,
+    }),
+
+    requestMagicLink: builder.mutation<MagicLinkResponse, { email: string }>({
+      query: (body) => ({
+        url: "/auth/magic-link",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (res: { data?: MagicLinkResponse; message?: string }) =>
+        res.data ?? { message: res.message ?? "Check your email" },
+    }),
+
+    verifyMagicLink: builder.query<AuthTokens, string>({
+      query: (token) => ({
+        url: `/auth/verify?token=${encodeURIComponent(token)}`,
+        method: "GET",
+      }),
+      transformResponse: (res: AuthTokensResponse) => res.data,
     }),
 
     getSingleUser: builder.query({
@@ -18,17 +39,18 @@ const authApi = baseApi.injectEndpoints({
       }),
     }),
 
-    register: builder.mutation({
+    register: builder.mutation<AuthTokens, { email: string; password: string; name?: string }>({
       query: (data) => ({
-        url: "/api/v1/auth/register",
+        url: "/auth/register",
         method: "POST",
         body: data,
       }),
+      transformResponse: (res: AuthTokensResponse) => res.data,
     }),
 
     forgetPassword: builder.mutation({
       query: (data) => ({
-        url: "/api/v1/auth/forgot-password",
+        url: "/auth/forgot-password",
         method: "POST",
         body: data,
       }),
@@ -36,7 +58,7 @@ const authApi = baseApi.injectEndpoints({
 
     resitPassword: builder.mutation({
       query: (data) => ({
-        url: `/api/v1/auth/reset-password`,
+        url: `/auth/reset-password`,
         method: "POST",
         body: data,
       }),
@@ -52,31 +74,21 @@ const authApi = baseApi.injectEndpoints({
 
     verifyAccount: builder.mutation({
       query: (data) => ({
-        url: `/api/v1/auth/verify-email`,
+        url: `/auth/verify-email`,
         method: "POST",
         body: data,
       }),
     }),
     verifyEmail: builder.mutation({
       query: (data) => ({
-        url: `/api/v1/auth/verify-email`,
+        url: `/auth/verify-email`,
         method: "POST",
         body: data,
       }),
     }),
-    GoogleLogin: builder.mutation({
-      query: (data) => {
-        console.log("Google login data:", data);
-        return {
-          url: `/auth/google`,
-          method: "POST",
-          body: data,
-        };
-      },
-    }),
     GetAllServices: builder.query({
       query: () => ({
-        url: `/api/v1/services`,
+        url: `/services`,
         method: "GET",
       }),
     }),
@@ -85,13 +97,15 @@ const authApi = baseApi.injectEndpoints({
         url: `/auth/change-password-in-settings`,
         method: "POST",
         body: data,
-      }),  
+      }),
     }),
   }),
 });
 
 export const {
   useLoginMutation,
+  useRequestMagicLinkMutation,
+  useVerifyMagicLinkQuery,
   useRegisterMutation,
   useForgetPasswordMutation,
   useResitPasswordMutation,
@@ -99,7 +113,6 @@ export const {
   useVerifyEmailMutation,
   useVerifyAccountMutation,
   useGetSingleUserQuery,
-  useGoogleLoginMutation,
-  useGetAllServicesQuery,  
-  useResetPasswordMutation
+  useGetAllServicesQuery,
+  useResetPasswordMutation,
 } = authApi;

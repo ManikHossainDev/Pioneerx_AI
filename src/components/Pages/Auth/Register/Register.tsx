@@ -1,10 +1,9 @@
 "use client";
 import Link from "next/link";
 import { Form, Checkbox, message } from "antd";
-import google from "@/assets/Authentication/google.png";
-import InputComponent from "@/components/UI/InputComponent";
-import Image from "next/image";
-import { FaLock, FaUserCircle } from "react-icons/fa";
+import GoogleAuthButton from "@/components/Pages/Auth/shared/GoogleAuthButton";
+import AuthDivider from "@/components/Pages/Auth/shared/AuthDivider";
+import InputComponent from "@/components/UI/InputComponent";import { FaLock, FaUserCircle } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { GiPhone } from "react-icons/gi";
 import { useRegisterMutation } from "@/redux/features/auth/authApi";
@@ -26,18 +25,16 @@ const Register: React.FC = () => {
       name: values.fullName,
       email: values.email,
       password: values.password,
-      phone: values.number,
     };
 
     try {
       const res = await register(registrationData).unwrap();
       console.log("Registration Response: ", res);
       message.success("Registration successful! Please check your email for verification.");
-    } catch (error: any) {
-      console.error("Registration Error: ", error);
-      message.error(error?.data?.message || "Something went wrong during registration");
-    }
-  };
+    } catch (error: unknown) {
+      const err = error as { data?: { message?: string } };
+      message.error(err?.data?.message || "Something went wrong during registration");
+    }  };
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -121,19 +118,8 @@ const Register: React.FC = () => {
                   Login
                   </Link>
                 </div>
-                <div className="flex items-center space-x-2 mt-2">
-                  <div className="border border-white md:w-[30%] w-[25%]"></div>
-                  <h1 className="text-white md:text-xl" >Or login with</h1>
-                  <div className="border border-white md:w-[30%] w-[25%]"></div>
-                </div>
-                <Image
-                className="mx-auto mt-2"
-                    src={google}
-                    width={50}
-                    height={50}
-                    alt="google"
-                  />
-                </div>
+                <AuthDivider label="Or sign up with" labelClassName="text-white/70" />
+                <GoogleAuthButton label="Continue with Google" />                </div>
               </div>
             </div>
           </div>

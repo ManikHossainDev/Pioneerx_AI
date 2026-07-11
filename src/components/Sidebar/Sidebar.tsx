@@ -32,56 +32,43 @@ import {
   Building2,
   LogOut,
   X,
+  type LucideIcon,
 } from "lucide-react";
+import { useGetSectionsQuery } from "@/redux/api/pioneerxApi";
+import {
+  CATEGORY_LABELS,
+  CATEGORY_ORDER,
+  getSectionPathFromKey,
+} from "@/lib/sectionRoutes";
 
-const menuData = [
-  {
-    section: "Core",
-    items: [
-      { Icon: Lightbulb, label: "Idea & Validation", href: "/idea-validation" },
-      { Icon: Infinity, label: "Branding", href: "/branding" },
-      { Icon: LayoutGrid, label: "Product / Service", href: "/product-service" },
-      { Icon: Globe, label: "Website & Tech", href: "/website-tech" },
-      { Icon: Megaphone, label: "Marketing", href: "/marketing" },
-      { Icon: LineChart, label: "Sales", href: "/sales" },
-      { Icon: Settings2, label: "Operations", href: "/operations" },
-      { Icon: Scale, label: "Legal & Finance", href: "/legal-finance" },
-      { Icon: PenLine, label: "Launch", href: "/launch" },
-      { Icon: BarChart2, label: "Scaling", href: "/scaling" },
-    ],
-  },
-  {
-    section: "Advanced",
-    items: [
-      { Icon: CircleDollarSign, label: "Financial Strategy", href: "/financial-strategy" },
-      { Icon: UserCog, label: "Personal Execution", href: "/personal-execution" },
-      { Icon: Crosshair, label: "Opportunity Engine", href: "/opportunity-engine" },
-      { Icon: Handshake, label: "Partnerships", href: "/partnerships" },
-      { Icon: Star, label: "Customer Experience", href: "/customer-experience" },
-      { Icon: PieChart, label: "Data & Analytics", href: "/data-analytics" },
-    ],
-  },
-  {
-    section: "Pro+ Growth",
-    items: [
-      { Icon: Zap, label: "Automation Systems", href: "/automation-systems" },
-      { Icon: FlaskConical, label: "Advanced Marketing Lab", href: "/advanced-marketing" },
-      { Icon: TrendingUp, label: "Revenue Expansion", href: "/revenue-expansion" },
-      { Icon: BarChart4, label: "Advanced Sales Systems", href: "/advanced-sales" },
-      { Icon: BellRing, label: "Growth Engine", href: "/growth-engine" },
-    ],
-  },
-  {
-    section: "Elite",
-    items: [
-      { Icon: Gem, label: "Wealth & Capital", href: "/wealth-capital" },
-      { Icon: SearchCheck, label: "Investment & Acquisition", href: "/investment-acquisition" },
-      { Icon: UserCircle, label: "Personal Brand", href: "/personal-brand" },
-      { Icon: Building2, label: "Multi-Business Mgmt", href: "/multi-business" },
-      { Icon: LogOut, label: "Exit & Legacy", href: "/exit-legacy" },
-    ],
-  },
-];
+const SECTION_ICONS: Record<string, LucideIcon> = {
+  idea_validation: Lightbulb,
+  branding: Infinity,
+  product_service: LayoutGrid,
+  website_tech: Globe,
+  marketing: Megaphone,
+  sales: LineChart,
+  operations: Settings2,
+  legal_finance: Scale,
+  launch: PenLine,
+  scaling: BarChart2,
+  financial_strategy: CircleDollarSign,
+  personal_execution: UserCog,
+  opportunity_engine: Crosshair,
+  partnerships: Handshake,
+  customer_experience: Star,
+  data_analytics: PieChart,
+  automation_systems: Zap,
+  advanced_marketing_lab: FlaskConical,
+  revenue_expansion: TrendingUp,
+  advanced_sales_systems: BarChart4,
+  growth_engine: BellRing,
+  wealth_capital: Gem,
+  investment_acquisition: SearchCheck,
+  personal_brand: UserCircle,
+  multi_business_mgmt: Building2,
+  exit_legacy: LogOut,
+};
 
 interface SidebarProps {
   isMobile?: boolean;
@@ -92,8 +79,22 @@ interface SidebarProps {
 const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
   const pathname = usePathname();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const { data: sections = [], isLoading } = useGetSectionsQuery();
 
   const isDashboardActive = pathname === "/" || pathname === "/dashboard";
+
+  const groupedSections = CATEGORY_ORDER.map((category) => ({
+    section: CATEGORY_LABELS[category] ?? category,
+    category,
+    items: sections
+      .filter((s) => s.category === category)
+      .map((s) => ({
+        Icon: SECTION_ICONS[s.key] ?? LayoutGrid,
+        label: s.name,
+        href: getSectionPathFromKey(s.key),
+        key: s.key,
+      })),
+  })).filter((group) => group.items.length > 0);
 
   const sidebarContent = (
     <aside
@@ -102,7 +103,6 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
         ${isMobile ? "pb-20" : ""}
       `}
     >
-      {/* Mobile Close Button */}
       {isMobile && (
         <div className="flex justify-end p-4 lg:hidden">
           <button
@@ -114,7 +114,6 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
         </div>
       )}
 
-      {/* Dashboard Header */}
       <Link
         href="/dashboard"
         className="block no-underline"
@@ -169,25 +168,28 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
         </div>
       </Link>
 
-      {/* Menu Sections */}
       <div className="px-[4px] pb-6">
-        {menuData.map((group) => (
-          <div key={group.section} className="mb-[4px]">
-            {/* Section Heading */}
+        {isLoading && (
+          <div className="px-[10px] py-4 text-[12px] text-[#7e8199]">
+            Loading sections…
+          </div>
+        )}
+
+        {groupedSections.map((group) => (
+          <div key={group.category} className="mb-[4px]">
             <div className="text-[10px] md:text-[14px] font-semibold tracking-[0.08em] text-[#7c6ff7] uppercase pt-[8px] pb-[2px] px-[6px] select-none">
               {group.section}
             </div>
 
-            {/* Items */}
             {group.items.map((item) => {
-              const key = `${group.section}|${item.label}`;
+              const itemKey = `${group.category}|${item.key}`;
               const isActive = pathname === item.href;
-              const isHovered = hoveredItem === key;
+              const isHovered = hoveredItem === itemKey;
               const lit = isActive || isHovered;
 
               return (
                 <Link
-                  key={key}
+                  key={itemKey}
                   href={item.href}
                   className="block no-underline"
                   onClick={() => {
@@ -195,7 +197,7 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
                   }}
                 >
                   <div
-                    onMouseEnter={() => setHoveredItem(key)}
+                    onMouseEnter={() => setHoveredItem(itemKey)}
                     onMouseLeave={() => setHoveredItem(null)}
                     className={`
                       flex items-center gap-[9px]
@@ -252,7 +254,6 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black/50 z-[100] transition-opacity duration-300 lg:hidden ${
           isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
@@ -260,7 +261,6 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
         onClick={onClose}
       />
 
-      {/* Drawer */}
       <div
         className={`fixed top-0 left-0 bottom-0 w-64 bg-[#0f1011] z-[101] transform transition-transform duration-300 ease-in-out lg:hidden ${
           isOpen ? "translate-x-0" : "-translate-x-full"
