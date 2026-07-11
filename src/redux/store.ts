@@ -22,7 +22,7 @@ const persistConfig = {
 };
 
 const sectionGenerationPersistConfig = {
-  key: "sectionGeneration",
+  key: "sectionGeneration_v2",
   storage: sessionStorage,
 };
 

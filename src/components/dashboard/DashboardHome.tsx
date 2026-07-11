@@ -1,6 +1,5 @@
 "use client";
 
-import DashboardSetup from "@/components/dashboard/DashboardSetup";
 import Status from "@/components/dashboard/status";
 import TodayAITaskList from "@/components/dashboard/TodayAITaskList";
 import { useGetProfileContextQuery } from "@/redux/api/businessProfileApi";
@@ -19,13 +18,11 @@ const DashboardHome = () => {
   return (
     <div>
       <h1 className="text-white text-md">Good morning, {greetingName} 👋</h1>
-      <p className="text-gray-500 text-xs mb-2">
+      <p className="text-gray-500 text-xs mb-4">
         {activeProfile
           ? `${profileDisplayName(activeProfile)} · ${profileSubtitle(activeProfile)}`
           : "Loading your business profile..."}
       </p>
-      <DashboardSetup currentPhase={activeProfile?.currentPhase} />
-      <br />
       <Status />
       <br />
       <TodayAITaskList />

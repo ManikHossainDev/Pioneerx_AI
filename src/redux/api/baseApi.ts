@@ -32,6 +32,7 @@ export const baseApi = createApi({
     "DailyTasks",
     "SavedOutputs",
     "Generations",
+    "Conversations",
   ],
   endpoints: () => ({}),
 });

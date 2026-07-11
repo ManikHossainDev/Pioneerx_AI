@@ -12,6 +12,7 @@ export const PROFILE_SCOPED_TAGS = [
   "DailyTasks",
   "SavedOutputs",
   "Generations",
+  "Conversations",
 ] as const;
 
 export const businessProfileApi = baseApi.injectEndpoints({

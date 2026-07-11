@@ -5,13 +5,6 @@ export interface ApiResponse<T> {
   success: boolean;
 }
 
-export interface ToolCatalogItem {
-  id: string;
-  name: string;
-  description: string;
-  url?: string;
-}
-
 export interface SuggestedLink {
   id?: string;
   label: string;
@@ -26,19 +19,12 @@ export interface Section {
   category: string;
   requiredTier: string;
   isActive: boolean;
-  toolCatalog?: ToolCatalogItem[];
   suggestedLinks?: SuggestedLink[];
 }
 
 export interface ActionStep {
   text: string;
   description: string;
-}
-
-export interface AiSuggestedTool {
-  name: string;
-  description: string;
-  url: string;
 }
 
 export interface AggregatedSuggestedLink {
@@ -49,10 +35,7 @@ export interface AggregatedSuggestedLink {
 
 export interface AggregatedResult {
   action_steps: ActionStep[];
-  tools_features: string[];
-  ai_suggested_tools: AiSuggestedTool[];
   suggested_links: AggregatedSuggestedLink[];
-  ai_tip: string;
 }
 
 export interface TokenStatus {
@@ -62,6 +45,49 @@ export interface TokenStatus {
   resetAt: string;
 }
 
+export interface ConversationMessage {
+  id: string;
+  conversationId: string;
+  role: "user" | "assistant" | string;
+  content: string;
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  userId: string;
+  businessProfileId: string;
+  sectionId: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: ConversationMessage[];
+  section?: {
+    id: string;
+    key: string;
+    name: string;
+  };
+  latestGeneration?: {
+    id: string;
+    aggregatedResult: AggregatedResult;
+    actionSteps?: ActionStep[];
+    isSaved?: boolean;
+    createdAt?: string;
+  } | null;
+}
+
+export interface SendMessageResponse {
+  message: ConversationMessage;
+  tokenStatus: TokenStatus;
+}
+
+export interface ConversationGenerateResponse {
+  generationId: string;
+  action_steps: ActionStep[];
+  suggested_links: AggregatedSuggestedLink[];
+  tokenStatus: TokenStatus;
+}
+
+/** @deprecated Use ConversationGenerateResponse — kept for saved-output shape */
 export interface GenerateResponse {
   generationId: string;
   aggregatedResult: AggregatedResult;

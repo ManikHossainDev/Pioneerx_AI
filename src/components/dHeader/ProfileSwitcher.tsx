@@ -12,7 +12,6 @@ import {
   useCreateBusinessProfileMutation,
   useGetProfileContextQuery,
 } from "@/redux/api/businessProfileApi";
-import { clearAllSectionGenerations } from "@/redux/features/sectionGeneration/sectionGenerationSlice";
 import {
   profileDisplayName,
   profileSubtitle,
@@ -72,7 +71,6 @@ const ProfileSwitcher = () => {
 
     try {
       await activateProfile(profile.id).unwrap();
-      dispatch(clearAllSectionGenerations());
       toast.success(`Switched to ${profileDisplayName(profile)}`);
       setOpen(false);
     } catch (error) {

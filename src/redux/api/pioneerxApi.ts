@@ -1,10 +1,12 @@
 import { baseApi } from "@/redux/api/baseApi";
 import type {
   ApiResponse,
+  Conversation,
+  ConversationGenerateResponse,
   DailyTaskListResponse,
-  GenerateResponse,
   SavedOutput,
   Section,
+  SendMessageResponse,
 } from "@/types/pioneerx";
 
 export const pioneerxApi = baseApi.injectEndpoints({
@@ -21,17 +23,45 @@ export const pioneerxApi = baseApi.injectEndpoints({
       providesTags: ["DailyTasks"],
     }),
 
-    generateSection: builder.mutation<
-      GenerateResponse,
-      { key: string; prompt: string }
+    getOrCreateConversation: builder.query<
+      Conversation,
+      { sectionKey: string; businessProfileId: string }
     >({
-      query: ({ key, prompt }) => ({
-        url: `/sections/${key}/generate`,
+      query: ({ sectionKey }) => `/conversations/${sectionKey}`,
+      transformResponse: (res: ApiResponse<Conversation>) => res.data,
+      providesTags: (_result, _error, { sectionKey, businessProfileId }) => [
+        { type: "Conversations", id: `${businessProfileId}:${sectionKey}` },
+        "Conversations",
+      ],
+    }),
+
+    sendConversationMessage: builder.mutation<
+      SendMessageResponse,
+      { sectionKey: string; content: string; businessProfileId: string }
+    >({
+      query: ({ sectionKey, content }) => ({
+        url: `/conversations/${sectionKey}/message`,
         method: "POST",
-        body: { prompt },
+        body: { content },
       }),
-      transformResponse: (res: ApiResponse<GenerateResponse>) => res.data,
-      invalidatesTags: ["DailyTasks", "Generations"],
+      transformResponse: (res: ApiResponse<SendMessageResponse>) => res.data,
+      invalidatesTags: (_result, _error, { sectionKey, businessProfileId }) => [
+        { type: "Conversations", id: `${businessProfileId}:${sectionKey}` },
+        "Conversations",
+      ],
+    }),
+
+    generateFromConversation: builder.mutation<
+      ConversationGenerateResponse,
+      { sectionKey: string }
+    >({
+      query: ({ sectionKey }) => ({
+        url: `/conversations/${sectionKey}/generate`,
+        method: "POST",
+      }),
+      transformResponse: (res: ApiResponse<ConversationGenerateResponse>) =>
+        res.data,
+      invalidatesTags: ["DailyTasks", "Generations", "Conversations"],
     }),
 
     toggleDailyTask: builder.mutation<
@@ -87,7 +117,9 @@ export const pioneerxApi = baseApi.injectEndpoints({
 export const {
   useGetSectionsQuery,
   useGetDailyTasksTodayQuery,
-  useGenerateSectionMutation,
+  useGetOrCreateConversationQuery,
+  useSendConversationMessageMutation,
+  useGenerateFromConversationMutation,
   useToggleDailyTaskMutation,
   useRegenerateDailyTasksMutation,
   useSaveGenerationMutation,
