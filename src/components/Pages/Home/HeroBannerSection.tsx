@@ -43,15 +43,15 @@ const HeroBannerSection = () => {
         </div>
 
         {/* Heading */}
-        <h1 className="text-center font-extrabold text-white leading-tight tracking-tight text-md md:text-6xl lg:text-7xl mt-5 md:mb-5 xl:mb-7">
+        <h1 className="text-center font-extrabold text-white leading-tight tracking-tight text-3xl sm:text-4xl md:text-6xl lg:text-7xl mt-5 md:mb-5 xl:mb-7">
           Build, Run, and Scale
           <br />
-          <span className="font-extrabold text-white leading-tight tracking-tight text-md md:text-6xl lg:text-7xl">Your Business</span>{" "}
+          <span className="font-extrabold text-white leading-tight tracking-tight text-3xl sm:text-4xl md:text-6xl lg:text-7xl">Your Business</span>{" "}
           All in One Platform
         </h1>
 
         {/* Subtext */}
-        <p className="text-center text-white/60 text-[11px] md:text-base xl:text-md w-full md:max-w-xl leading-relaxed mt-2  md:mb-9">
+        <p className="text-center text-white/60 text-[11px] md:text-base xl:text-lg w-full md:max-w-xl leading-relaxed mt-2  md:mb-9">
           AI-powered tools and systems to turn your idea into a real business
           and scale it. From validation to wealth  every stage, every tool,
           one OS.

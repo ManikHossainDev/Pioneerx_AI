@@ -16,9 +16,11 @@ export interface Section {
   id: string;
   key: string;
   name: string;
+  description?: string | null;
   category: string;
   requiredTier: string;
   isActive: boolean;
+  isLocked?: boolean;
   suggestedLinks?: SuggestedLink[];
 }
 
@@ -40,6 +42,13 @@ export interface AggregatedResult {
 
 export interface TokenStatus {
   used: number;
+  limit: number | null;
+  percentage: number;
+  resetAt: string;
+}
+
+export interface CreditStatus {
+  balance: number;
   limit: number | null;
   percentage: number;
   resetAt: string;
@@ -77,14 +86,20 @@ export interface Conversation {
 
 export interface SendMessageResponse {
   message: ConversationMessage;
-  tokenStatus: TokenStatus;
+  action_steps?: ActionStep[];
+  suggested_links?: AggregatedSuggestedLink[];
+  generationId?: string;
+  creditStatus?: CreditStatus;
+  /** @deprecated Prefer creditStatus — kept for older responses */
+  tokenStatus?: TokenStatus;
 }
 
 export interface ConversationGenerateResponse {
   generationId: string;
   action_steps: ActionStep[];
   suggested_links: AggregatedSuggestedLink[];
-  tokenStatus: TokenStatus;
+  tokenStatus?: TokenStatus;
+  creditStatus?: CreditStatus;
 }
 
 /** @deprecated Use ConversationGenerateResponse — kept for saved-output shape */
@@ -128,6 +143,10 @@ export interface SavedOutputGeneration {
     key: string;
     name: string;
   };
+  conversation?: {
+    id: string;
+    messages: ConversationMessage[];
+  };
 }
 
 export interface SavedOutput {
@@ -137,4 +156,50 @@ export interface SavedOutput {
   label: string | null;
   savedAt: string;
   generation?: SavedOutputGeneration;
+}
+
+export interface GenerationDetail {
+  id: string;
+  action_steps?: ActionStep[];
+  suggested_links?: AggregatedSuggestedLink[];
+  aggregatedResult?: AggregatedResult;
+  conversation?: {
+    id: string;
+    messages: ConversationMessage[];
+  };
+}
+
+export type NotificationType = "credit_low" | "model_update" | "platform_update";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType | string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export type ImageGenerationType = "logo" | "business_card";
+
+export interface ImageGenerateResponse {
+  imageUrl: string;
+  creditStatus?: CreditStatus;
+  creditLimitReached?: boolean;
+  dailyLimitReached?: boolean;
+}
+
+export interface AppReview {
+  id: string;
+  name: string;
+  roleCompany: string | null;
+  reviewText: string;
+  rating: number | null;
+  avatarUrl: string | null;
+  createdAt: string;
+}
+
+export interface SubmitReviewPayload {
+  roleCompany?: string;
+  reviewText: string;
+  rating?: number;
 }

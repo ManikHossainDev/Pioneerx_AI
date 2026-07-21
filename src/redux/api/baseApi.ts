@@ -33,6 +33,9 @@ export const baseApi = createApi({
     "SavedOutputs",
     "Generations",
     "Conversations",
+    "CreditStatus",
+    "Notifications",
+    "Reviews",
   ],
   endpoints: () => ({}),
 });

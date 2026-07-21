@@ -2,14 +2,22 @@
 
 import { useState } from "react";
 import { ImSpinner6 } from "react-icons/im";
-import { useRequestMagicLinkMutation } from "@/redux/features/auth/authApi";
+import {
+  useApplyPromoCodeMutation,
+  useRequestMagicLinkMutation,
+} from "@/redux/features/auth/authApi";
 import { getApiErrorMessage } from "@/utils/apiError";
+import { useRouter } from "next/navigation";
+import { message } from "antd";
+import { useAppDispatch } from "@/redux/hooks";
+import { persistAuthSession } from "@/lib/authSession";
 
 interface MagicLinkFormProps {
   initialEmail?: string;
   inputClassName?: string;
   buttonClassName?: string;
   variant?: "page" | "modal";
+  showPromoCode?: boolean;
 }
 
 const MagicLinkForm = ({
@@ -17,11 +25,17 @@ const MagicLinkForm = ({
   inputClassName = "",
   buttonClassName = "",
   variant = "page",
+  showPromoCode = true,
 }: MagicLinkFormProps) => {
   const [email, setEmail] = useState(initialEmail);
+  const [promoCode, setPromoCode] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [promoSuccess, setPromoSuccess] = useState<string | null>(null);
   const [requestMagicLink, { isLoading }] = useRequestMagicLinkMutation();
+  const [applyPromo] = useApplyPromoCodeMutation();
+  const dispatch = useAppDispatch();
+  const router = useRouter();
 
   const inputClass =
     variant === "modal"
@@ -36,14 +50,46 @@ const MagicLinkForm = ({
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
+    setPromoSuccess(null);
 
     if (!email.trim()) {
       setError("Please enter your email");
       return;
     }
 
+    const code = promoCode.trim();
+
     try {
-      await requestMagicLink({ email: email.trim() }).unwrap();
+      const res = await requestMagicLink({
+        email: email.trim(),
+        ...(code ? { promoCode: code } : {}),
+      }).unwrap();
+
+      if (res && typeof res === "object" && "access_token" in res && "refresh_token" in res) {
+        persistAuthSession(dispatch, res as any, email.trim());
+
+        if (code) {
+          try {
+            await applyPromo({ code }).unwrap();
+            setPromoSuccess(
+              "Promo code applied! Your trial has been extended."
+            );
+            message.success("Promo code applied! Your trial has been extended.");
+          } catch (promoErr: unknown) {
+            message.warning(
+              getApiErrorMessage(promoErr, "Could not apply promo code")
+            );
+          }
+        }
+
+        message.success("Logged in successfully");
+        router.replace("/dashboard");
+        return;
+      }
+
+      if (code) {
+        setPromoSuccess("Promo code will be applied when you sign in.");
+      }
       setSent(true);
     } catch (err: unknown) {
       setError(getApiErrorMessage(err, "Failed to log in. Please try again."));
@@ -65,6 +111,9 @@ const MagicLinkForm = ({
             We sent a sign-in email to <strong>{email}</strong>. It expires in 15
             minutes and can only be used once.
           </p>
+          {promoSuccess && (
+            <p className="mt-2 text-xs text-green-400">{promoSuccess}</p>
+          )}
         </div>
       </div>
     );
@@ -88,6 +137,28 @@ const MagicLinkForm = ({
         />
       </div>
 
+      {showPromoCode && (
+        <div>
+          {variant === "page" && (
+            <label className="block text-white text-sm mb-1">
+              Have a promo code? (Optional)
+            </label>
+          )}
+          {variant === "modal" && (
+            <label className="block text-[#8888aa] text-xs mb-1.5">
+              Have a promo code? (Optional)
+            </label>
+          )}
+          <input
+            type="text"
+            value={promoCode}
+            onChange={(e) => setPromoCode(e.target.value)}
+            placeholder="Enter promo code"
+            className={`${inputClass} ${inputClassName}`}
+          />
+        </div>
+      )}
+
       {error && (
         <p
           className={`text-sm rounded-lg px-3 py-2 ${
@@ -98,6 +169,10 @@ const MagicLinkForm = ({
         >
           {error}
         </p>
+      )}
+
+      {promoSuccess && (
+        <p className="text-xs text-green-400">{promoSuccess}</p>
       )}
 
       <button

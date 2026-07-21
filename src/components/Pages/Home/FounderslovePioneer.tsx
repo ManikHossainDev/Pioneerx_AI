@@ -3,65 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { Star } from "lucide-react";
-
-interface Testimonial {
-  name: string;
-  role: string;
-  avatar: string;
-  quote: string;
-  rating: number;
-}
-
-const testimonials: Testimonial[] = [
-  {
-    name: "Sarah Chen",
-    role: "Founder, NovaMint",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    quote:
-      "PioneerX replaced 6 separate tools for me. The AI advisor alone is worth 10x the subscription — it thinks like a co-founder.",
-    rating: 5,
-  },
-  {
-    name: "James Okafor",
-    role: "CEO, LoopStack",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    quote:
-      "I've tried every productivity tool out there. PioneerX is the only one where the AI truly understood my workflow.",
-    rating: 5,
-  },
-  {
-    name: "Priya Nair",
-    role: "CTO, Fieldwave",
-    avatar: "https://randomuser.me/api/portraits/women/68.jpg",
-    quote:
-      "The onboarding was instant. Within 10 minutes we replaced our entire reporting stack. It just works.",
-    rating: 4,
-  },
-  {
-    name: "Lucas Ferreira",
-    role: "Head of Ops, DriftBase",
-    avatar: "https://randomuser.me/api/portraits/men/76.jpg",
-    quote:
-      "Our team saves 15 hours a week. PioneerX doesn't just automate — it thinks ahead.",
-    rating: 5,
-  },
-  {
-    name: "Mia Tanaka",
-    role: "Product Lead, Syncora",
-    avatar: "https://randomuser.me/api/portraits/women/12.jpg",
-    quote:
-      "Every feature request we had was already built. PioneerX feels like it was made for us.",
-    rating: 4,
-  },
-  {
-    name: "David Park",
-    role: "Founder, Curveball AI",
-    avatar: "https://randomuser.me/api/portraits/men/55.jpg",
-    quote:
-      "Switched from three SaaS tools to PioneerX. Cut spend by 60% and doubled output.",
-    rating: 5,
-  },
-];
+import { useGetReviewsQuery } from "@/redux/api/pioneerxApi";
 
 interface StarRatingProps {
   rating: number;
@@ -86,10 +28,11 @@ const StarRating = ({ rating, total = 5 }: StarRatingProps) => (
 
 const FounderslovePioneer = () => {
   const trackRef = useRef<HTMLDivElement>(null);
+  const { data: reviews = [], isLoading } = useGetReviewsQuery();
 
   useEffect(() => {
     const track = trackRef.current;
-    if (!(track instanceof HTMLDivElement)) return;
+    if (!(track instanceof HTMLDivElement) || reviews.length === 0) return;
 
     let pos = 0;
     let paused = false;
@@ -105,11 +48,19 @@ const FounderslovePioneer = () => {
       rafId = requestAnimationFrame(step);
     };
 
-    const handleMouseEnter = () => { paused = true; };
-    const handleMouseLeave = () => { paused = false; };
-    const handleTouchStart = () => { paused = true; };
+    const handleMouseEnter = () => {
+      paused = true;
+    };
+    const handleMouseLeave = () => {
+      paused = false;
+    };
+    const handleTouchStart = () => {
+      paused = true;
+    };
     const handleTouchEnd = () => {
-      setTimeout(() => { paused = false; }, 2000);
+      setTimeout(() => {
+        paused = false;
+      }, 2000);
     };
 
     track.addEventListener("mouseenter", handleMouseEnter);
@@ -126,20 +77,32 @@ const FounderslovePioneer = () => {
       track.removeEventListener("touchstart", handleTouchStart);
       track.removeEventListener("touchend", handleTouchEnd);
     };
-  }, []);
+  }, [reviews.length]);
 
-  const doubled = [...testimonials, ...testimonials];
+  // Changelog §3: hide section entirely when no approved reviews
+  if (isLoading || reviews.length === 0) {
+    return null;
+  }
+
+  // Repeat the list enough times that the track is always wider than the
+  // screen, in two identical halves — the loop resets at the halfway point,
+  // so the right-to-left scroll appears endless with no visible jump.
+  const copies = Math.max(2, 2 * Math.ceil(6 / reviews.length));
+  const doubled = Array.from({ length: copies }, () => reviews).flat();
 
   return (
     <div className="py-6 sm:py-10 overflow-hidden rounded-2xl">
+      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white text-center mb-4 sm:mb-6 px-4">
+        Founders love PioneerX
+      </h2>
       <div className="overflow-hidden">
         <div
           ref={trackRef}
-          className="flex gap-3 sm:gap-5  will-change-transform"
+          className="flex gap-3 sm:gap-5 will-change-transform"
         >
           {doubled.map((t, i) => (
             <div
-              key={i}
+              key={`${t.id}-${i}`}
               className="
                 bg-white/[0.06] border border-white/[0.12] rounded-2xl
                 p-3.5 sm:p-4 md:p-5
@@ -149,25 +112,39 @@ const FounderslovePioneer = () => {
               "
             >
               <div>
-                <StarRating rating={t.rating} total={5} />
+                {t.rating != null && t.rating > 0 && (
+                  <StarRating rating={t.rating} total={5} />
+                )}
                 <p className="text-[11px] sm:text-xs text-gray-300 leading-relaxed italic">
-                  {t.quote}
+                  {t.reviewText}
                 </p>
               </div>
 
               <div className="flex items-center gap-2.5 sm:gap-3 mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-white/[0.08]">
-                <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden shrink-0">
-                  <Image
-                    src={t.avatar}
-                    alt={t.name}
-                    fill
-                    sizes="32px"
-                    className="object-cover"
-                  />
-                </div>
+                {t.avatarUrl ? (
+                  <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden shrink-0">
+                    <Image
+                      src={t.avatarUrl}
+                      alt={t.name}
+                      fill
+                      sizes="32px"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#2c2d32] flex items-center justify-center shrink-0 text-[11px] font-semibold text-white">
+                    {t.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <div>
-                  <p className="text-[11px] sm:text-xs font-semibold text-white">{t.name}</p>
-                  <p className="text-[10px] sm:text-[11px] text-gray-400">{t.role}</p>
+                  <p className="text-[11px] sm:text-xs font-semibold text-white">
+                    {t.name}
+                  </p>
+                  {t.roleCompany && (
+                    <p className="text-[10px] sm:text-[11px] text-gray-400">
+                      {t.roleCompany}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

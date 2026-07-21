@@ -1,11 +1,25 @@
 "use client"
 import { useState } from "react";
+import { SiOpenai, SiClaude, SiGooglegemini } from "react-icons/si";
+import { Sparkles } from "lucide-react";
+
+type AiIconKey = "openai" | "claude" | "gemini" | "more";
+
 interface CardProps {
+  aiName?: string;
+  aiIcon?: AiIconKey;
   title: string;
   description: string;
 }
 
-const Cards = ({ title, description }: CardProps) => {
+const iconMap: Record<AiIconKey, React.ReactNode> = {
+  openai: <SiOpenai className="w-4 h-4 text-white" />,
+  claude: <SiClaude className="w-4 h-4 text-white" />,
+  gemini: <SiGooglegemini className="w-4 h-4 text-white" />,
+  more: <Sparkles className="w-4 h-4 text-white" />,
+};
+
+const Cards = ({ aiName, aiIcon, title, description }: CardProps) => {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -21,9 +35,18 @@ const Cards = ({ title, description }: CardProps) => {
           ${hovered ? "opacity-100" : "opacity-0"}`}
       />
 
+      {/* AI model name + logo */}
+      {aiName && aiIcon && (
+        <div className="relative flex items-center gap-2 mb-2">
+          <span className="flex items-center justify-center w-7 h-7 rounded-md bg-white/[0.08] border border-white/[0.12]">
+            {iconMap[aiIcon]}
+          </span>
+          <span className="text-white font-semibold text-sm">{aiName}</span>
+        </div>
+      )}
 
       {/* Title */}
-      <h3 className="relative text-white font-semibold text-base mb-2 tracking-tight">
+      <h3 className="relative text-violet-300 font-medium text-xs mb-1.5 tracking-tight">
         {title}
       </h3>
 

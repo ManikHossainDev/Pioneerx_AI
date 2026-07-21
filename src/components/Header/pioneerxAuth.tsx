@@ -309,6 +309,11 @@ const BusinessProfileScreen = ({
       return;
     }
 
+    if (!businessName.trim()) {
+      toast.error("Please enter a business name");
+      return;
+    }
+
     try {
       const tokens = await register({
         name: signupData.name,
@@ -327,13 +332,11 @@ const BusinessProfileScreen = ({
         })
       );
 
-      if (businessName || industry || stage) {
-        await updateActiveProfile({
-          ...(businessName && { businessName }),
-          ...(industry && { industry }),
-          ...(stage && { currentPhase: signupStageToPhase(stage) }),
-        }).unwrap();
-      }
+      await updateActiveProfile({
+        businessName: businessName.trim(),
+        ...(industry && { industry }),
+        ...(stage && { currentPhase: signupStageToPhase(stage) }),
+      }).unwrap();
 
       localStorage.setItem("verify_email", signupData.email);
       toast.success("Account created! Please verify your email.");
@@ -362,13 +365,14 @@ const BusinessProfileScreen = ({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <FormLabel>Business Name (optional)</FormLabel>
+          <FormLabel>Business Name *</FormLabel>
           <input
             type="text"
             className={inputClass}
-            placeholder=""
+            placeholder="Your business name"
             value={businessName}
             onChange={(e) => setBusinessName(e.target.value)}
+            required
           />
         </div>
 
@@ -417,7 +421,11 @@ const BusinessProfileScreen = ({
         </div>
 
         {/* This Continue calls register API with signup + business data */}
-        <button type="submit" disabled={isLoading} className={primaryBtn}>
+        <button
+          type="submit"
+          disabled={isLoading || !businessName.trim()}
+          className={primaryBtn}
+        >
           {isLoading ? (
             <>
               <ImSpinner6 className="animate-spin size-4" /> Creating account...

@@ -1,9 +1,16 @@
 import { baseApi } from "@/redux/api/baseApi";
 import type {
   ApiResponse,
+  AppNotification,
   Conversation,
   ConversationGenerateResponse,
+  CreditStatus,
   DailyTaskListResponse,
+  GenerationDetail,
+  ImageGenerateResponse,
+  ImageGenerationType,
+  AppReview,
+  SubmitReviewPayload,
   SavedOutput,
   Section,
   SendMessageResponse,
@@ -48,6 +55,8 @@ export const pioneerxApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { sectionKey, businessProfileId }) => [
         { type: "Conversations", id: `${businessProfileId}:${sectionKey}` },
         "Conversations",
+        "CreditStatus",
+        "DailyTasks",
       ],
     }),
 
@@ -61,7 +70,7 @@ export const pioneerxApi = baseApi.injectEndpoints({
       }),
       transformResponse: (res: ApiResponse<ConversationGenerateResponse>) =>
         res.data,
-      invalidatesTags: ["DailyTasks", "Generations", "Conversations"],
+      invalidatesTags: ["DailyTasks", "Generations", "Conversations", "CreditStatus"],
     }),
 
     toggleDailyTask: builder.mutation<
@@ -97,10 +106,22 @@ export const pioneerxApi = baseApi.injectEndpoints({
       invalidatesTags: ["SavedOutputs"],
     }),
 
-    getSavedOutputs: builder.query<SavedOutput[], void>({
-      query: () => "/saved-outputs",
+    getSavedOutputs: builder.query<SavedOutput[], { sectionKey?: string } | void>({
+      query: (arg) => {
+        const sectionKey =
+          arg && typeof arg === "object" ? arg.sectionKey : undefined;
+        return sectionKey
+          ? `/saved-outputs?sectionKey=${encodeURIComponent(sectionKey)}`
+          : "/saved-outputs";
+      },
       transformResponse: (res: ApiResponse<SavedOutput[]>) => res.data,
       providesTags: ["SavedOutputs"],
+    }),
+
+    getGenerationById: builder.query<GenerationDetail, string>({
+      query: (id) => `/generations/${id}`,
+      transformResponse: (res: ApiResponse<GenerationDetail>) => res.data,
+      providesTags: (_result, _error, id) => [{ type: "Generations", id }],
     }),
 
     unsaveGeneration: builder.mutation<SavedOutput, string>({
@@ -110,6 +131,67 @@ export const pioneerxApi = baseApi.injectEndpoints({
       }),
       transformResponse: (res: ApiResponse<SavedOutput>) => res.data,
       invalidatesTags: ["SavedOutputs"],
+    }),
+
+    getCreditStatus: builder.query<CreditStatus, void>({
+      query: () => "/credit-status",
+      transformResponse: (res: ApiResponse<CreditStatus>) => res.data,
+      providesTags: ["CreditStatus"],
+    }),
+
+    getNotifications: builder.query<AppNotification[], void>({
+      query: () => "/notifications",
+      transformResponse: (res: ApiResponse<AppNotification[]>) => res.data,
+      providesTags: ["Notifications"],
+    }),
+
+    markNotificationRead: builder.mutation<AppNotification, string>({
+      query: (id) => ({
+        url: `/notifications/${id}/read`,
+        method: "PATCH",
+      }),
+      transformResponse: (res: ApiResponse<AppNotification>) => res.data,
+      invalidatesTags: ["Notifications"],
+    }),
+
+    markAllNotificationsRead: builder.mutation<{ success?: boolean }, void>({
+      query: () => ({
+        url: "/notifications/read-all",
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Notifications"],
+    }),
+
+    generateImage: builder.mutation<
+      ImageGenerateResponse,
+      { prompt: string; type: ImageGenerationType }
+    >({
+      query: (body) => ({
+        url: "/image/generate",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (res: ApiResponse<ImageGenerateResponse>) => res.data,
+      invalidatesTags: ["CreditStatus"],
+    }),
+
+    getReviews: builder.query<AppReview[], void>({
+      query: () => "/reviews",
+      transformResponse: (res: ApiResponse<AppReview[]>) => res.data,
+      providesTags: ["Reviews"],
+    }),
+
+    submitReview: builder.mutation<
+      { message: string },
+      SubmitReviewPayload
+    >({
+      query: (body) => ({
+        url: "/reviews",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (res: ApiResponse<{ message: string }>) =>
+        res.data ?? { message: (res as unknown as { message?: string }).message || "Review submitted." },
     }),
   }),
 });
@@ -124,5 +206,14 @@ export const {
   useRegenerateDailyTasksMutation,
   useSaveGenerationMutation,
   useGetSavedOutputsQuery,
+  useGetGenerationByIdQuery,
+  useLazyGetGenerationByIdQuery,
   useUnsaveGenerationMutation,
+  useGetCreditStatusQuery,
+  useGetNotificationsQuery,
+  useMarkNotificationReadMutation,
+  useMarkAllNotificationsReadMutation,
+  useGenerateImageMutation,
+  useGetReviewsQuery,
+  useSubmitReviewMutation,
 } = pioneerxApi;

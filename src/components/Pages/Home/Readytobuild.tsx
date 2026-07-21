@@ -4,7 +4,7 @@ const Readytobuild = () => {
  return (
   <section className="px-2 mb-20 xl:mb-32">
     <div className="w-full  my-10 xl:my-16 py-10 xl:py-12 xl:container border border-gray-500 rounded-xl">
-    <h1 className="text-center text-white font-bold text-xl xl:text-4xl mb-2 md:mb-5 ">Ready to build your PioneerX? </h1>
+    <h1 className="text-center text-white font-bold text-2xl sm:text-3xl md:text-4xl xl:text-4xl mb-2 md:mb-5 leading-tight">Ready to build your PioneerX? </h1>
     <p className="text-[#D4D4D4] text-center text-sm md:text-base mb-2 md:mb-5 ">Join thousands of founders who use Business OS to execute faster and scale smarter.</p>
       {/* CTA Button */}
              <button className="flex items-center mx-auto gap-2.5 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-[#FFFFFF] border border-white font-bold text-sm px-7 md:py-3.5 py-1 rounded-full transition-colors duration-200">

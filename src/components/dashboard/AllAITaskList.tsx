@@ -2,17 +2,21 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import {
   Sparkles,
   Save,
   Send,
-  BookOpen,
+  X,
 } from "lucide-react";
 import AIIdeaValidation from "./AIIdeaValidation";
+import ImageGenerationPanel from "./ImageGenerationPanel";
+import logo from "@/assets/logo/logo.png";
 import {
-  useGenerateFromConversationMutation,
+  useGetCreditStatusQuery,
   useGetOrCreateConversationQuery,
   useGetSavedOutputsQuery,
+  useLazyGetGenerationByIdQuery,
   useSaveGenerationMutation,
   useSendConversationMessageMutation,
   useUnsaveGenerationMutation,
@@ -21,6 +25,7 @@ import { useGetProfileContextQuery } from "@/redux/api/businessProfileApi";
 import type {
   AggregatedResult,
   ConversationMessage,
+  CreditStatus,
   SavedOutput,
   TokenStatus,
 } from "@/types/pioneerx";
@@ -36,20 +41,49 @@ interface AllAITaskListProps {
   sectionName: string;
 }
 
-const TokenMeter = ({ status }: { status: TokenStatus }) => {
-  if (status.limit === null) return null;
+const CreditMeter = ({ status }: { status: CreditStatus }) => {
+  if (status.limit === null) {
+    return (
+      <div className="mt-3 rounded-lg border border-[#2a2a3a] bg-[#18181f] px-3 py-2">
+        <p className="text-[11px] text-[#888]">
+          {status.balance.toLocaleString()} credits remaining
+        </p>
+      </div>
+    );
+  }
+
+  const exhausted = status.percentage >= 100;
+  const warning = status.percentage >= 80 && !exhausted;
 
   return (
     <div className="mt-3 rounded-lg border border-[#2a2a3a] bg-[#18181f] px-3 py-2">
       <div className="flex items-center justify-between text-[11px] text-[#888] mb-1.5">
-        <span>Token usage today</span>
         <span>
-          {status.used} / {status.limit}
+          {exhausted
+            ? "No credits remaining"
+            : `${status.balance.toLocaleString()} credits remaining`}
+        </span>
+        <span
+          className={
+            exhausted
+              ? "text-red-400"
+              : warning
+                ? "text-amber-400"
+                : "text-[#888]"
+          }
+        >
+          {status.percentage}% used
         </span>
       </div>
       <div className="h-1.5 rounded-full bg-[#2a2a2a] overflow-hidden">
         <div
-          className="h-full bg-[#6c5ce7] rounded-full transition-all"
+          className={`h-full rounded-full transition-all ${
+            exhausted
+              ? "bg-red-400"
+              : warning
+                ? "bg-amber-400"
+                : "bg-[#6c5ce7]"
+          }`}
           style={{ width: `${Math.min(status.percentage, 100)}%` }}
         />
       </div>
@@ -78,8 +112,15 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
   const [saveLabel, setSaveLabel] = useState("");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [selectedSavedId, setSelectedSavedId] = useState<string | null>(null);
-  const [tokenStatus, setTokenStatus] = useState<TokenStatus | null>(null);
+  const [creditStatus, setCreditStatus] = useState<CreditStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [viewingConversation, setViewingConversation] = useState<
+    ConversationMessage[] | null
+  >(null);
+
+  const { data: globalCredit } = useGetCreditStatusQuery(undefined, {
+    skip: !token,
+  });
 
   const {
     data: conversation,
@@ -92,12 +133,17 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
 
   const [sendMessage, { isLoading: isSending }] =
     useSendConversationMessageMutation();
-  const [generateFromConversation, { isLoading: isGenerating }] =
-    useGenerateFromConversationMutation();
+  // [COMMENT OUT] Generate button mutation — auto-generation now happens on send
+  // const [generateFromConversation, { isLoading: isGenerating }] =
+  //   useGenerateFromConversationMutation();
   const [saveGeneration, { isLoading: isSaving }] = useSaveGenerationMutation();
   const [unsaveGeneration] = useUnsaveGenerationMutation();
+  const [fetchGeneration] = useLazyGetGenerationByIdQuery();
   const { data: savedOutputs = [], isLoading: isLoadingSaved } =
-    useGetSavedOutputsQuery(undefined, { skip: !businessProfileId });
+    useGetSavedOutputsQuery(
+      { sectionKey },
+      { skip: !businessProfileId }
+    );
 
   useEffect(() => {
     setInput("");
@@ -108,8 +154,13 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
     setResult(null);
     setGenerationId(null);
     setSaveLabel("");
-    setTokenStatus(null);
+    setCreditStatus(null);
+    setViewingConversation(null);
   }, [sectionKey, businessProfileId]);
+
+  useEffect(() => {
+    if (globalCredit) setCreditStatus(globalCredit);
+  }, [globalCredit]);
 
   useEffect(() => {
     if (!businessProfileId) return;
@@ -142,14 +193,12 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
       setResult(cached.aggregatedResult);
       setGenerationId(cached.generationId);
       setSaveLabel(cached.saveLabel);
-      setTokenStatus(cached.tokenStatus);
       return;
     }
 
     setResult(null);
     setGenerationId(null);
     setSaveLabel("");
-    setTokenStatus(null);
   }, [conversation, businessProfileId, sectionName, cached]);
 
   useEffect(() => {
@@ -160,22 +209,101 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
     ? savedOutputs.some((o) => o.generationId === generationId)
     : false;
 
+  const creditsExhausted =
+    creditStatus != null &&
+    creditStatus.limit != null &&
+    creditStatus.percentage >= 100;
+
   const applyApiError = (err: unknown, fallback: string) => {
     const apiErr = err as {
       status?: number;
-      data?: { message?: string; tokenStatus?: TokenStatus };
+      data?: {
+        message?: string;
+        creditLimitReached?: boolean;
+        balance?: number;
+        creditStatus?: CreditStatus;
+        tokenStatus?: TokenStatus;
+      };
     };
-    if (apiErr.status === 429 && apiErr.data?.tokenStatus) {
-      setTokenStatus(apiErr.data.tokenStatus);
-      setError("Daily token limit reached. Try again after reset.");
+    if (apiErr.data?.creditStatus) {
+      setCreditStatus(apiErr.data.creditStatus);
+    }
+    if (apiErr.status === 402 || apiErr.data?.creditLimitReached) {
+      setError("No credits remaining. Upgrade your plan to continue.");
+      return;
+    }
+    if (apiErr.status === 429) {
+      setError("Daily limit reached. Try again after reset.");
       return;
     }
     setError(apiErr.data?.message ?? fallback);
   };
 
+  const applyMessageResult = (
+    data: {
+      message: ConversationMessage;
+      action_steps?: AggregatedResult["action_steps"];
+      suggested_links?: AggregatedResult["suggested_links"];
+      generationId?: string;
+      creditStatus?: CreditStatus;
+    },
+    optimisticId?: string
+  ) => {
+    if (data.creditStatus) setCreditStatus(data.creditStatus);
+
+    setMessages((prev) => {
+      const userContent = optimisticId
+        ? prev.find((m) => m.id === optimisticId)?.content ?? ""
+        : "";
+      const base = optimisticId
+        ? prev.filter((m) => m.id !== optimisticId)
+        : prev;
+
+      if (optimisticId) {
+        return [
+          ...base,
+          {
+            id: `user-${Date.now()}`,
+            conversationId: conversation?.id ?? "",
+            role: "user",
+            content: userContent,
+            createdAt: new Date().toISOString(),
+          },
+          data.message,
+        ];
+      }
+      return [...base, data.message];
+    });
+
+    if (data.action_steps || data.suggested_links || data.generationId) {
+      const aggregated: AggregatedResult = {
+        action_steps: data.action_steps ?? [],
+        suggested_links: data.suggested_links ?? [],
+      };
+      const label = `${sectionName} — ${new Date().toLocaleDateString()}`;
+      setResult(aggregated);
+      if (data.generationId) setGenerationId(data.generationId);
+      setSelectedSavedId(null);
+      setSaveLabel(label);
+
+      if (businessProfileId && data.generationId) {
+        dispatch(
+          setSectionGeneration({
+            businessProfileId,
+            sectionKey,
+            generationId: data.generationId,
+            saveLabel: label,
+            aggregatedResult: aggregated,
+            tokenStatus: null,
+          })
+        );
+      }
+    }
+  };
+
   const handleSend = async () => {
     const content = input.trim();
-    if (!content || isSending || !businessProfileId) return;
+    if (!content || isSending || !businessProfileId || creditsExhausted) return;
 
     setError(null);
     setSaveMessage(null);
@@ -196,15 +324,7 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
         content,
         businessProfileId,
       }).unwrap();
-      setTokenStatus(data.tokenStatus);
-      setMessages((prev) => {
-        const withoutTemp = prev.filter((m) => m.id !== optimistic.id);
-        return [
-          ...withoutTemp,
-          { ...optimistic, id: `user-${Date.now()}` },
-          data.message,
-        ];
-      });
+      applyMessageResult(data, optimistic.id);
     } catch (err) {
       setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
       setInput(content);
@@ -212,6 +332,7 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
     }
   };
 
+  /* [COMMENT OUT] Manual Generate — tasks/links now auto-generate with every message
   const handleGenerateTask = async () => {
     if (!businessProfileId) return;
     setError(null);
@@ -226,18 +347,7 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
           content: pending,
           businessProfileId,
         }).unwrap();
-        setTokenStatus(data.tokenStatus);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `user-${Date.now()}`,
-            conversationId: conversation?.id ?? "",
-            role: "user",
-            content: pending,
-            createdAt: new Date().toISOString(),
-          },
-          data.message,
-        ]);
+        applyMessageResult(data);
       }
 
       const generated = await generateFromConversation({
@@ -255,7 +365,7 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
       setGenerationId(generated.generationId);
       setSelectedSavedId(null);
       setSaveLabel(label);
-      setTokenStatus(generated.tokenStatus);
+      if (generated.creditStatus) setCreditStatus(generated.creditStatus);
 
       dispatch(
         setSectionGeneration({
@@ -264,13 +374,14 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
           generationId: generated.generationId,
           saveLabel: label,
           aggregatedResult: aggregated,
-          tokenStatus: generated.tokenStatus,
+          tokenStatus: generated.tokenStatus ?? null,
         })
       );
     } catch (err) {
       applyApiError(err, "Could not generate tasks. Please try again.");
     }
   };
+  */
 
   const handleSave = async () => {
     if (!generationId || !saveLabel.trim()) return;
@@ -301,25 +412,54 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
     }
   };
 
-  const handleViewSaved = (output: SavedOutput) => {
-    const aggregated = output.generation?.aggregatedResult;
-    if (!aggregated) return;
-
+  const handleViewSaved = async (output: SavedOutput) => {
     setSelectedSavedId(output.id);
-    setResult({
-      action_steps: aggregated.action_steps ?? [],
-      suggested_links: aggregated.suggested_links ?? [],
-    });
+    setSaveMessage(null);
+    setError(null);
+
+    const aggregated = output.generation?.aggregatedResult;
+    if (aggregated) {
+      setResult({
+        action_steps: aggregated.action_steps ?? [],
+        suggested_links: aggregated.suggested_links ?? [],
+      });
+    }
     setGenerationId(output.generationId);
     setSaveLabel(output.label ?? "");
-    setSaveMessage(null);
+
+    const embedded = output.generation?.conversation?.messages;
+    if (embedded?.length) {
+      setViewingConversation(embedded);
+      return;
+    }
+
+    try {
+      const detail = await fetchGeneration(output.generationId).unwrap();
+      const msgs = detail.conversation?.messages ?? [];
+      setViewingConversation(msgs);
+
+      if (detail.aggregatedResult) {
+        setResult(detail.aggregatedResult);
+      } else if (detail.action_steps || detail.suggested_links) {
+        setResult({
+          action_steps: detail.action_steps ?? [],
+          suggested_links: detail.suggested_links ?? [],
+        });
+      }
+    } catch {
+      setViewingConversation(null);
+      setError("Could not load the conversation for this saved output.");
+    }
   };
 
-  const busy = isSending || isGenerating;
+  const busy = isSending;
   const loadingConversation =
     !businessProfileId ||
     isLoadingConversation ||
     (isFetchingConversation && messages.length === 0);
+
+  const showEmptyPlaceholder =
+    !loadingConversation && messages.length === 0;
 
   return (
     <div className="text-white flex items-start justify-center">
@@ -339,11 +479,21 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
               </p>
             )}
 
-            {!loadingConversation && messages.length === 0 && (
+            {showEmptyPlaceholder && (
               <div className="flex flex-col items-center justify-center h-full min-h-[280px] text-center">
-                <BookOpen size={36} className="text-[#444] mb-3" />
-                <p className="text-[14px] text-[#888]">
-                  Describe your business idea.
+                <Image
+                  src={logo}
+                  alt="PioneerX"
+                  width={48}
+                  height={48}
+                  className="mb-4 opacity-90"
+                />
+                <p className="text-[16px] md:text-[18px] font-semibold text-white tracking-tight">
+                  Where We Mind Your Business
+                </p>
+                <p className="text-[12px] text-[#666] mt-2 max-w-xs">
+                  Ask anything about {sectionName.toLowerCase()} — tasks and
+                  links will appear automatically.
                 </p>
               </div>
             )}
@@ -394,21 +544,28 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
                       handleSend();
                     }
                   }}
-                  placeholder="Write Here"
-                  disabled={busy || !businessProfileId}
-                  className="w-full bg-[#18181f] border border-[#2a2a3a] rounded-lg text-[#ccc] placeholder-[#555] text-[13px] px-3 py-2.5 pr-10 outline-none focus:border-[#6c5ce7] transition-colors disabled:opacity-60"
+                  placeholder="Where We Mind Your Business"
+                  disabled={busy || !businessProfileId || creditsExhausted}
+                  className="w-full bg-[#18181f] border border-[#2a2a3a] rounded-lg text-[#ccc] placeholder-[#555] text-[13px] px-3 py-2.5 outline-none focus:border-[#6c5ce7] transition-colors disabled:opacity-60"
                 />
-                <button
-                  type="button"
-                  onClick={handleSend}
-                  disabled={busy || !input.trim() || !businessProfileId}
-                  title="Send message"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[#6c5ce7] hover:text-[#8b7cf0] disabled:opacity-40 transition-colors"
-                >
-                  <Send size={16} />
-                </button>
               </div>
 
+              <button
+                type="button"
+                onClick={handleSend}
+                disabled={
+                  busy ||
+                  !input.trim() ||
+                  !businessProfileId ||
+                  creditsExhausted
+                }
+                className="flex items-center gap-2 bg-[#6c5ce7] hover:bg-[#5a4bd1] disabled:opacity-60 text-white text-[13px] font-semibold px-4 py-2.5 rounded-lg transition-colors whitespace-nowrap"
+              >
+                <Send size={14} />
+                {isSending ? "Sending..." : "Send Message"}
+              </button>
+
+              {/* [COMMENT OUT] Generate button — auto-generation on every message
               <button
                 type="button"
                 onClick={handleGenerateTask}
@@ -420,29 +577,20 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
                 className="flex items-center gap-2 bg-[#6c5ce7] hover:bg-[#5a4bd1] disabled:opacity-60 text-white text-[13px] font-semibold px-4 py-2.5 rounded-lg transition-colors whitespace-nowrap"
               >
                 {isGenerating ? (
-                  <svg
-                    className="animate-spin"
-                    width={14}
-                    height={14}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
-                  >
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-                  </svg>
+                  <svg ... />
                 ) : (
                   <Sparkles size={14} />
                 )}
                 {isGenerating ? "Generating..." : "Generate Task"}
               </button>
+              */}
             </div>
 
             {error && (
               <p className="mt-2 text-[12px] text-red-400">{error}</p>
             )}
 
-            {tokenStatus && <TokenMeter status={tokenStatus} />}
+            {creditStatus && <CreditMeter status={creditStatus} />}
 
             {generationId && result && (
               <div className="mt-3 pt-3 border-t border-[#2a2a3a]">
@@ -560,12 +708,68 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
 
           <AIIdeaValidation result={result} compact />
 
+          <ImageGenerationPanel />
+
           <p className="text-[11px] text-red-500/90 leading-relaxed px-1">
             AI can make mistakes. Please verify important information before
             making decisions.
           </p>
         </div>
       </div>
+
+      {viewingConversation && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70"
+            onClick={() => setViewingConversation(null)}
+          />
+          <div className="relative w-full max-w-lg max-h-[80vh] bg-[#12121a] border border-[#2a2a3a] rounded-xl overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2a3a]">
+              <h3 className="text-[14px] font-semibold text-white">
+                Saved conversation
+              </h3>
+              <button
+                type="button"
+                onClick={() => setViewingConversation(null)}
+                className="text-[#666] hover:text-white"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {viewingConversation.length === 0 && (
+                <p className="text-[12px] text-[#666] text-center py-8">
+                  No conversation messages linked to this output.
+                </p>
+              )}
+              {viewingConversation.map((msg) => {
+                const isUser = msg.role === "user";
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[90%] rounded-2xl px-3 py-2 text-[12px] leading-relaxed whitespace-pre-wrap ${
+                        isUser
+                          ? "bg-[#6c5ce7] text-white"
+                          : "bg-[#1a1a24] border border-[#2a2a3a] text-[#ddd]"
+                      }`}
+                    >
+                      {msg.content}
+                    </div>
+                  </div>
+                );
+              })}
+              {result && (
+                <div className="pt-3 border-t border-[#2a2a3a]">
+                  <AIIdeaValidation result={result} compact />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

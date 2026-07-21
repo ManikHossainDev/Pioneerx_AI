@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -32,6 +32,7 @@ import {
   Building2,
   LogOut,
   X,
+  Lock,
   type LucideIcon,
 } from "lucide-react";
 import { useGetSectionsQuery } from "@/redux/api/pioneerxApi";
@@ -78,7 +79,9 @@ interface SidebarProps {
 
 const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [upgradePrompt, setUpgradePrompt] = useState<string | null>(null);
   const { data: sections = [], isLoading } = useGetSectionsQuery();
 
   const isDashboardActive = pathname === "/" || pathname === "/dashboard";
@@ -93,6 +96,8 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
         label: s.name,
         href: getSectionPathFromKey(s.key),
         key: s.key,
+        isLocked: Boolean(s.isLocked),
+        requiredTier: s.requiredTier,
       })),
   })).filter((group) => group.items.length > 0);
 
@@ -183,9 +188,50 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
 
             {group.items.map((item) => {
               const itemKey = `${group.category}|${item.key}`;
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href && !item.isLocked;
               const isHovered = hoveredItem === itemKey;
               const lit = isActive || isHovered;
+
+              if (item.isLocked) {
+                return (
+                  <button
+                    key={itemKey}
+                    type="button"
+                    className="block w-full text-left no-underline"
+                    onClick={() => {
+                      setUpgradePrompt(item.label);
+                      if (isMobile && onClose) onClose();
+                    }}
+                    onMouseEnter={() => setHoveredItem(itemKey)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                  >
+                    <div
+                      className={`
+                        flex items-center gap-[9px]
+                        px-[10px] py-[5px]
+                        mx-[2px] my-[1px]
+                        rounded-[6px]
+                        cursor-pointer
+                        transition-colors duration-150 opacity-50
+                        ${isHovered ? "bg-[rgba(255,255,255,0.05)]" : "bg-transparent"}
+                      `}
+                    >
+                      <item.Icon
+                        size={20}
+                        strokeWidth={1.65}
+                        className="shrink-0 text-[#555872]"
+                      />
+                      <span className="text-[12px] md:text-[16px] leading-[1.4] whitespace-nowrap overflow-hidden text-ellipsis tracking-[0.01em] text-[#555872] flex-1">
+                        {item.label}
+                      </span>
+                      <span className="flex items-center gap-1 text-[9px] uppercase tracking-wide text-[#7c6ff7] shrink-0">
+                        <Lock size={10} />
+                        Upgrade
+                      </span>
+                    </div>
+                  </button>
+                );
+              }
 
               return (
                 <Link
@@ -248,8 +294,52 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
     </aside>
   );
 
+  const upgradeModal = upgradePrompt && (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-black/70"
+        onClick={() => setUpgradePrompt(null)}
+      />
+      <div className="relative w-full max-w-sm bg-[#14141c] border border-[#2c2d32] rounded-xl p-5">
+        <button
+          type="button"
+          onClick={() => setUpgradePrompt(null)}
+          className="absolute top-3 right-3 text-[#666] hover:text-white"
+        >
+          <X size={16} />
+        </button>
+        <div className="flex items-center gap-2 mb-2 text-[#7c6ff7]">
+          <Lock size={16} />
+          <span className="text-[13px] font-semibold uppercase tracking-wide">
+            Upgrade required
+          </span>
+        </div>
+        <h3 className="text-white text-lg font-bold mb-2">{upgradePrompt}</h3>
+        <p className="text-[13px] text-[#888] mb-4 leading-relaxed">
+          This section is locked on your current plan. Upgrade to unlock it and
+          unlock more AI tools.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setUpgradePrompt(null);
+            router.push("/#pricing");
+          }}
+          className="w-full py-2.5 bg-[#6C5CE7] hover:bg-[#5a4dd4] text-white rounded-lg text-sm font-semibold"
+        >
+          View plans
+        </button>
+      </div>
+    </div>
+  );
+
   if (!isMobile) {
-    return sidebarContent;
+    return (
+      <>
+        {sidebarContent}
+        {upgradeModal}
+      </>
+    );
   }
 
   return (
@@ -268,6 +358,7 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
       >
         {sidebarContent}
       </div>
+      {upgradeModal}
     </>
   );
 };

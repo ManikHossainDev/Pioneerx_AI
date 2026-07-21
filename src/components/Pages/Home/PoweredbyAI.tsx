@@ -9,21 +9,29 @@ import Cards from "./Cards";
 
 const cards = [
   {
+    aiName: "ChatGPT",
+    aiIcon: "openai" as const,
     title: "Creative Strategy & Marketing",
     description:
       "Generates business ideas, marketing campaigns, content strategies, and customer engagement plans.",
   },
   {
+    aiName: "Claude",
+    aiIcon: "claude" as const,
     title: "Deep Thinking & Analysis",
     description:
       "Handles research, long-form reasoning, business planning, and intelligent decision support.",
   },
   {
+    aiName: "Gemini",
+    aiIcon: "gemini" as const,
     title: "Real-Time Intelligence",
     description:
       "Connects current trends, live information, and productivity workflows to keep your business ahead.",
   },
   {
+    aiName: "Many More",
+    aiIcon: "more" as const,
     title: "Other Popular AI Systems",
     description:
       "Our platform intelligently chooses and combines the best AI responses to deliver the most effective business solutions.",
@@ -83,7 +91,13 @@ const PoweredbyAI = () => {
         <div className=" block lg:hidden mt-1">
          <div className=" w-full xl:container mx-auto px-2  grid grid-cols-1 md:grid-cols-2 gap-1">
           {cards.map((card, index) => (
-            <Cards key={index} title={card.title} description={card.description} />
+            <Cards
+              key={index}
+              aiName={card.aiName}
+              aiIcon={card.aiIcon}
+              title={card.title}
+              description={card.description}
+            />
           ))}
         </div>
         </div>

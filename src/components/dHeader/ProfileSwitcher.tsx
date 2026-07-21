@@ -2,7 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LuBuilding2, LuChevronDown, LuLogOut, LuPlus } from "react-icons/lu";
+import {
+  LuBuilding2,
+  LuChevronDown,
+  LuLogOut,
+  LuPencil,
+  LuPlus,
+  LuStar,
+} from "react-icons/lu";
 import { ImSpinner6 } from "react-icons/im";
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
@@ -11,6 +18,7 @@ import {
   useActivateBusinessProfileMutation,
   useCreateBusinessProfileMutation,
   useGetProfileContextQuery,
+  useUpdateBusinessProfileMutation,
 } from "@/redux/api/businessProfileApi";
 import {
   profileDisplayName,
@@ -20,6 +28,7 @@ import {
 } from "@/types/businessProfile";
 import { getApiErrorMessage } from "@/utils/apiError";
 import CreateBusinessProfileForm from "@/components/dashboard/CreateBusinessProfileForm";
+import LeaveReviewModal from "./LeaveReviewModal";
 
 const ProfileSwitcher = () => {
   const dispatch = useAppDispatch();
@@ -28,6 +37,10 @@ const ProfileSwitcher = () => {
   const user = useAppSelector(selectCurrentUser);
   const [open, setOpen] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<BusinessProfile | null>(
+    null
+  );
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, isFetching } = useGetProfileContextQuery(undefined, {
@@ -38,9 +51,12 @@ const ProfileSwitcher = () => {
     useActivateBusinessProfileMutation();
   const [createProfile, { isLoading: isCreating }] =
     useCreateBusinessProfileMutation();
+  const [updateProfile, { isLoading: isUpdating }] =
+    useUpdateBusinessProfileMutation();
 
   const activeProfile = data?.activeProfile;
   const profiles = data?.profiles ?? [];
+  const formOpen = showAddForm || !!editingProfile;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -50,6 +66,7 @@ const ProfileSwitcher = () => {
       ) {
         setOpen(false);
         setShowAddForm(false);
+        setEditingProfile(null);
       }
     };
 
@@ -88,6 +105,24 @@ const ProfileSwitcher = () => {
     }
   };
 
+  const handleUpdate = async (data: CreateBusinessProfileDto) => {
+    if (!editingProfile) return;
+
+    try {
+      await updateProfile({ id: editingProfile.id, body: data }).unwrap();
+      setEditingProfile(null);
+      toast.success("Business profile updated");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Failed to update profile"));
+    }
+  };
+
+  const startEdit = (profile: BusinessProfile, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setShowAddForm(false);
+    setEditingProfile(profile);
+  };
+
   if (!token) {
     return (
       <button
@@ -121,65 +156,78 @@ const ProfileSwitcher = () => {
       </button>
 
       {open && (
-        <div className={`absolute right-0 top-[calc(100%+6px)] z-[100] bg-[#14151a] border border-[#2c2d32] rounded-xl shadow-2xl overflow-hidden ${showAddForm ? "w-[320px]" : "w-[280px]"}`}>
-          <div className="px-4 py-3 border-b border-[#2c2d32]">
-            <p className="text-[11px] uppercase tracking-wider text-[#6b6b8a] mb-0.5">
-              Active Business
-            </p>
-            {activeProfile ? (
-              <>
-                <p className="text-white text-sm font-semibold truncate">
-                  {profileDisplayName(activeProfile)}
-                </p>
-                <p className="text-[#8a8a96] text-xs truncate">
-                  {profileSubtitle(activeProfile)}
-                </p>
-              </>
-            ) : (
-              <p className="text-[#8a8a96] text-xs">Loading profile...</p>
-            )}
-            {user?.name && (
-              <p className="text-[#6b6b8a] text-[11px] mt-2 truncate">
+        <div
+          className={`absolute right-0 top-[calc(100%+6px)] z-[100] bg-[#14151a] border border-[#2c2d32] rounded-xl shadow-2xl overflow-hidden ${
+            formOpen ? "w-[320px]" : "w-[280px]"
+          }`}
+        >
+          {user?.name && (
+            <div className="px-4 py-2.5 border-b border-[#2c2d32]">
+              <p className="text-[#6b6b8a] text-[11px] truncate">
                 Signed in as {user.name}
               </p>
-            )}
-          </div>
+            </div>
+          )}
 
-          <div className="max-h-[220px] overflow-y-auto py-1">
-            {profiles.map((profile) => {
-              const isActive = profile.id === activeProfile?.id;
-              return (
-                <button
-                  key={profile.id}
-                  type="button"
-                  disabled={isActivating}
-                  onClick={() => handleActivate(profile)}
-                  className={`w-full text-left px-4 py-2.5 hover:bg-[#1c1d24] transition-colors disabled:opacity-60 ${
-                    isActive ? "bg-[#6C5CE7]/10" : ""
-                  }`}
-                >
-                  <p
-                    className={`text-sm truncate ${
-                      isActive ? "text-white font-medium" : "text-[#c8c8cf]"
+          {!formOpen && (
+            <div className="max-h-[220px] overflow-y-auto py-1">
+              {profiles.map((profile) => {
+                const isActive = profile.id === activeProfile?.id;
+                return (
+                  <div
+                    key={profile.id}
+                    className={`flex items-center gap-1 px-2 hover:bg-[#1c1d24] transition-colors ${
+                      isActive ? "bg-[#6C5CE7]/10" : ""
                     }`}
                   >
-                    {profileDisplayName(profile)}
-                    {isActive && (
-                      <span className="ml-2 text-[10px] text-[#6C5CE7] uppercase">
-                        Active
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-[11px] text-[#6b6b8a] truncate">
-                    {profileSubtitle(profile)}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
+                    <button
+                      type="button"
+                      disabled={isActivating}
+                      onClick={() => handleActivate(profile)}
+                      className="flex-1 min-w-0 text-left px-2 py-2.5 disabled:opacity-60"
+                    >
+                      <p
+                        className={`text-sm truncate ${
+                          isActive ? "text-white font-medium" : "text-[#c8c8cf]"
+                        }`}
+                      >
+                        {profileDisplayName(profile)}
+                        {isActive && (
+                          <span className="ml-2 text-[10px] text-[#6C5CE7] uppercase">
+                            Active
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-[11px] text-[#6b6b8a] truncate">
+                        {profileSubtitle(profile)}
+                      </p>
+                    </button>
+                    <button
+                      type="button"
+                      title="Edit business"
+                      onClick={(e) => startEdit(profile, e)}
+                      className="shrink-0 p-2 text-[#6b6b8a] hover:text-white rounded-md transition-colors"
+                    >
+                      <LuPencil size={14} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <div className="border-t border-[#2c2d32] p-2 space-y-1">
-            {showAddForm ? (
+            {editingProfile ? (
+              <CreateBusinessProfileForm
+                key={editingProfile.id}
+                initialProfile={editingProfile}
+                onSubmit={handleUpdate}
+                onCancel={() => setEditingProfile(null)}
+                isSubmitting={isUpdating}
+                submitLabel="Save changes"
+                submittingLabel="Saving..."
+              />
+            ) : showAddForm ? (
               <CreateBusinessProfileForm
                 onSubmit={handleCreate}
                 onCancel={() => setShowAddForm(false)}
@@ -188,7 +236,10 @@ const ProfileSwitcher = () => {
             ) : (
               <button
                 type="button"
-                onClick={() => setShowAddForm(true)}
+                onClick={() => {
+                  setEditingProfile(null);
+                  setShowAddForm(true);
+                }}
                 className="w-full flex items-center gap-2 px-3 py-2 text-[#c8c8cf] hover:bg-[#1c1d24] rounded-md text-sm transition-colors"
               >
                 <LuPlus size={16} />
@@ -196,17 +247,38 @@ const ProfileSwitcher = () => {
               </button>
             )}
 
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-3 py-2 text-[#f87171] hover:bg-[#1c1d24] rounded-md text-sm transition-colors"
-            >
-              <LuLogOut size={16} />
-              Log out
-            </button>
+            {!formOpen && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    setShowReviewModal(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-[#c8c8cf] hover:bg-[#1c1d24] rounded-md text-sm transition-colors"
+                >
+                  <LuStar size={16} />
+                  Rate your experience
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-[#f87171] hover:bg-[#1c1d24] rounded-md text-sm transition-colors"
+                >
+                  <LuLogOut size={16} />
+                  Log out
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
+
+      <LeaveReviewModal
+        open={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+      />
     </div>
   );
 };

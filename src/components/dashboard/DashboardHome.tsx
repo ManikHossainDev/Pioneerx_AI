@@ -17,7 +17,7 @@ const DashboardHome = () => {
 
   return (
     <div>
-      <h1 className="text-white text-md">Good morning, {greetingName} 👋</h1>
+      <h1 className="text-white text-xl sm:text-2xl font-semibold">Good morning, {greetingName} 👋</h1>
       <p className="text-gray-500 text-xs mb-4">
         {activeProfile
           ? `${profileDisplayName(activeProfile)} · ${profileSubtitle(activeProfile)}`

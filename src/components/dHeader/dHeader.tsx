@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import logo from "@/assets/logo/logo.png";
-import { IoNotificationsOutline } from "react-icons/io5";
 import { Menu } from "lucide-react";
 import ProfileSwitcher from "./ProfileSwitcher";
+import NotificationBell from "./NotificationBell";
+import CreditBalance from "./CreditBalance";
 
 interface DHeaderProps {
   onMenuClick?: () => void;
@@ -37,13 +38,8 @@ const DHeader = ({ onMenuClick }: DHeaderProps) => {
       </div>
 
       <div className="flex items-center gap-1.5">
-        <button
-          title="Notifications"
-          className="hidden sm:flex items-center justify-center w-9 h-9 bg-[#18191d] border border-[#2c2d32] rounded-md text-[#8a8a96] hover:bg-[#202126] hover:border-[#3c3d44] hover:text-white transition-all duration-150 cursor-pointer"
-        >
-          <IoNotificationsOutline size={20} />
-        </button>
-
+        <CreditBalance />
+        <NotificationBell />
         <ProfileSwitcher />
       </div>
     </header>

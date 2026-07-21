@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { ImSpinner6 } from "react-icons/im";
 import {
-  BUSINESS_PHASES,
-  PHASE_LABELS,
   type BusinessPhase,
+  type BusinessProfile,
   type CreateBusinessProfileDto,
 } from "@/types/businessProfile";
 
@@ -24,6 +23,10 @@ interface CreateBusinessProfileFormProps {
   onCancel: () => void;
   isSubmitting?: boolean;
   compact?: boolean;
+  /** Prefill for edit mode */
+  initialProfile?: BusinessProfile | null;
+  submitLabel?: string;
+  submittingLabel?: string;
 }
 
 const fieldClass =
@@ -34,11 +37,19 @@ const CreateBusinessProfileForm = ({
   onCancel,
   isSubmitting = false,
   compact = true,
+  initialProfile = null,
+  submitLabel = "Create",
+  submittingLabel = "Creating...",
 }: CreateBusinessProfileFormProps) => {
-  const [businessName, setBusinessName] = useState("");
-  const [industry, setIndustry] = useState("");
-  const [currentPhase, setCurrentPhase] = useState<BusinessPhase>("IDEA");
-  const [country, setCountry] = useState("");
+  const [businessName, setBusinessName] = useState(
+    initialProfile?.businessName ?? ""
+  );
+  const [industry, setIndustry] = useState(initialProfile?.industry ?? "");
+  // Phase field is hidden for now — value is kept so edits don't reset it
+  const [currentPhase] = useState<BusinessPhase>(
+    initialProfile?.currentPhase ?? "IDEA"
+  );
+  const [country, setCountry] = useState(initialProfile?.country ?? "");
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -88,6 +99,7 @@ const CreateBusinessProfileForm = ({
         </select>
       </div>
 
+      {/* [COMMENT OUT] Business phase field — hidden for now, currentPhase still sent with its existing/default value
       <div>
         <label className="block text-[10px] uppercase tracking-wide text-[#6b6b8a] mb-1">
           Business phase
@@ -104,6 +116,7 @@ const CreateBusinessProfileForm = ({
           ))}
         </select>
       </div>
+      */}
 
       <div>
         <label className="block text-[10px] uppercase tracking-wide text-[#6b6b8a] mb-1">
@@ -127,10 +140,10 @@ const CreateBusinessProfileForm = ({
           {isSubmitting ? (
             <>
               <ImSpinner6 className="animate-spin size-3.5" />
-              Creating...
+              {submittingLabel}
             </>
           ) : (
-            "Create"
+            submitLabel
           )}
         </button>
         <button
