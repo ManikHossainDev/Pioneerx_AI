@@ -1,6 +1,7 @@
 "use client";
 
-import Status from "@/components/dashboard/status";
+// [COMMENT OUT] Shopify-era dashboard metrics (Monthly Revenue / Visitors / Customers / Conversion)
+// import Status from "@/components/dashboard/status";
 import TodayAITaskList from "@/components/dashboard/TodayAITaskList";
 import { useGetProfileContextQuery } from "@/redux/api/businessProfileApi";
 import { useAppSelector } from "@/redux/hooks";
@@ -23,8 +24,10 @@ const DashboardHome = () => {
           ? `${profileDisplayName(activeProfile)} · ${profileSubtitle(activeProfile)}`
           : "Loading your business profile..."}
       </p>
+      {/* [COMMENT OUT] Was meant to show Shopify store metrics — Shopify no longer used
       <Status />
       <br />
+      */}
       <TodayAITaskList />
     </div>
   );

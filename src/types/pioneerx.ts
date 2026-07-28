@@ -59,7 +59,10 @@ export interface ConversationMessage {
   conversationId: string;
   role: "user" | "assistant" | string;
   content: string;
+  imageUrl?: string | null;
   createdAt: string;
+  /** Local-only: request failed after showing the bubble */
+  sendFailed?: boolean;
 }
 
 export interface Conversation {
@@ -183,9 +186,12 @@ export type ImageGenerationType = "logo" | "business_card";
 
 export interface ImageGenerateResponse {
   imageUrl: string;
+  imageGenerationId?: string;
   creditStatus?: CreditStatus;
   creditLimitReached?: boolean;
   dailyLimitReached?: boolean;
+  userMessage?: ConversationMessage;
+  assistantMessage?: ConversationMessage;
 }
 
 export interface AppReview {
@@ -203,3 +209,56 @@ export interface SubmitReviewPayload {
   reviewText: string;
   rating?: number;
 }
+
+export type BillingInterval = "month" | "year";
+
+export interface BillingPlan {
+  priceId: string;
+  tier: string;
+  interval: string;
+  label: string | null;
+  amount: number | null;
+  currency: string;
+}
+
+export interface CheckoutSessionResult {
+  url: string | null;
+  sessionId: string;
+  tier: string;
+  interval: string;
+}
+
+export interface PortalSessionResult {
+  url: string;
+}
+
+export interface CheckoutSessionStatus {
+  sessionId: string;
+  status: string | null;
+  paymentStatus: string | null;
+  tier: string | null;
+}
+
+export interface PaymentRecord {
+  id: string;
+  provider: string;
+  invoiceId: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  description: string | null;
+  createdAt: string;
+}
+
+export interface UserSubscription {
+  id: string;
+  userId: string;
+  tier: string;
+  status: string;
+  renewsAt: string | null;
+  provider: string | null;
+  cancelAtPeriodEnd?: boolean;
+  stripeCustomerId?: string | null;
+  trialEndsAt?: string | null;
+}
+

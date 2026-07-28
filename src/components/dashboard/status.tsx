@@ -1,13 +1,18 @@
-import { DollarSign, TrendingUp, Users, Target } from "lucide-react";
-
-const metrics = [
-  { label: "Monthly Revenue", value: "$12,400", change: "+18% this month", icon: DollarSign },
-  { label: "Visitors",        value: "4,821",   change: "+18% this month", icon: TrendingUp },
-  { label: "Customers",       value: "84",       change: "+18% this month", icon: Users     },
-  { label: "Conversion",      value: "3.2%",     change: "+18% this month", icon: Target    },
-];
+// [COMMENT OUT] Shopify-era dashboard metrics — file kept for easy restore
+// import { DollarSign, TrendingUp, Users, Target } from "lucide-react";
+//
+// const metrics = [
+//   { label: "Monthly Revenue", value: "$12,400", change: "+18% this month", icon: DollarSign },
+//   { label: "Visitors",        value: "4,821",   change: "+18% this month", icon: TrendingUp },
+//   { label: "Customers",       value: "84",       change: "+18% this month", icon: Users     },
+//   { label: "Conversion",      value: "3.2%",     change: "+18% this month", icon: Target    },
+// ];
 
 const Status = () => {
+  // Shopify metrics no longer shown on dashboard
+  return null;
+
+  /*
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4 ">
       {metrics.map((m) => {
@@ -28,6 +33,7 @@ const Status = () => {
       })}
     </div>
   );
+  */
 };
 
 export default Status;

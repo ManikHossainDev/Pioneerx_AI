@@ -25,6 +25,10 @@ import { persistAuthSession } from "@/lib/authSession";
 import GoogleAuthButton from "@/components/Pages/Auth/shared/GoogleAuthButton";
 import MagicLinkForm from "@/components/Pages/Auth/shared/MagicLinkForm";
 import AuthDivider from "@/components/Pages/Auth/shared/AuthDivider";
+import DevPasswordLogin, {
+  isDevPasswordLoginEnabled,
+} from "@/components/Pages/Auth/shared/DevPasswordLogin";
+import AlreadySignedIn from "@/components/Pages/Auth/shared/AlreadySignedIn";
 import { useUpdateActiveProfileMutation } from "@/redux/api/businessProfileApi";
 import { signupStageToPhase } from "@/types/businessProfile";
 import { userFromToken } from "@/utils/jwt";
@@ -164,33 +168,36 @@ const LoginScreen = ({
   onNavigate: (step: string) => void;
   onClose?: () => void;
 }) => {
+  const useDevLogin = isDevPasswordLoginEnabled();
+
   return (
     <Card>
       <PioneerXLogo />
-      <h2 className="text-2xl font-bold text-white text-center mb-1">Sign In</h2>
-      <p className="text-[#6b6a8a] text-xs text-center mb-6">
-        Enter your email to log in
-      </p>
+      <AlreadySignedIn variant="modal" onClose={onClose}>
+        <h2 className="text-2xl font-bold text-white text-center mb-1">Sign In</h2>
+        <p className="text-[#6b6a8a] text-xs text-center mb-6">
+          {useDevLogin
+            ? "Dev mode — email & password"
+            : "Enter your email to log in"}
+        </p>
 
-      <MagicLinkForm variant="modal" />
+        {useDevLogin ? (
+          <DevPasswordLogin variant="modal" />
+        ) : (
+          <MagicLinkForm variant="modal" />
+        )}
 
-      {/* Password login — disabled for now
-      const router = useRouter();
-      const [fields, setFields] = useState({ email: "", password: "" });
-      ...
-      <form onSubmit={handleSubmit}>...</form>
-      */}
+        <AuthDivider />
 
-      <AuthDivider />
+        <GoogleAuthButton />
 
-      <GoogleAuthButton />
-
-      <p className="text-center text-xs text-[#6b6a8a] mt-5">
-        Don&apos;t have an account?{" "}
-        <button type="button" className="text-[#7C6FE0]" onClick={() => onNavigate(STEPS.SIGNUP)}>
-          Sign up free
-        </button>
-      </p>
+        <p className="text-center text-xs text-[#6b6a8a] mt-5">
+          Don&apos;t have an account?{" "}
+          <button type="button" className="text-[#7C6FE0]" onClick={() => onNavigate(STEPS.SIGNUP)}>
+            Sign up free
+          </button>
+        </p>
+      </AlreadySignedIn>
     </Card>
   );
 };

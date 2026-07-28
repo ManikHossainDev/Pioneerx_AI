@@ -1,6 +1,6 @@
 export function getApiBaseUrl(): string {
   return (
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8083/api/v1"
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8010/api/v1"
   ).replace(/\/$/, "");
 }
 

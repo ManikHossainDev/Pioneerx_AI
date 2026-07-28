@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   LuBuilding2,
   LuChevronDown,
+  LuCreditCard,
   LuLogOut,
   LuPencil,
   LuPlus,
@@ -29,6 +30,7 @@ import {
 import { getApiErrorMessage } from "@/utils/apiError";
 import CreateBusinessProfileForm from "@/components/dashboard/CreateBusinessProfileForm";
 import LeaveReviewModal from "./LeaveReviewModal";
+import LogoutConfirmModal from "@/components/Header/LogoutConfirmModal";
 
 const ProfileSwitcher = () => {
   const dispatch = useAppDispatch();
@@ -41,6 +43,7 @@ const ProfileSwitcher = () => {
     null
   );
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, isFetching } = useGetProfileContextQuery(undefined, {
@@ -75,8 +78,13 @@ const ProfileSwitcher = () => {
   }, []);
 
   const handleLogout = () => {
-    dispatch(logout());
     setOpen(false);
+    setLogoutConfirmOpen(true);
+  };
+
+  const confirmLogout = () => {
+    dispatch(logout());
+    setLogoutConfirmOpen(false);
     router.push("/");
   };
 
@@ -253,6 +261,18 @@ const ProfileSwitcher = () => {
                   type="button"
                   onClick={() => {
                     setOpen(false);
+                    router.push("/billing");
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-[#c8c8cf] hover:bg-[#1c1d24] rounded-md text-sm transition-colors"
+                >
+                  <LuCreditCard size={16} />
+                  Billing
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
                     setShowReviewModal(true);
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-[#c8c8cf] hover:bg-[#1c1d24] rounded-md text-sm transition-colors"
@@ -278,6 +298,11 @@ const ProfileSwitcher = () => {
       <LeaveReviewModal
         open={showReviewModal}
         onClose={() => setShowReviewModal(false)}
+      />
+      <LogoutConfirmModal
+        open={logoutConfirmOpen}
+        onContinue={() => setLogoutConfirmOpen(false)}
+        onLogout={confirmLogout}
       />
     </div>
   );

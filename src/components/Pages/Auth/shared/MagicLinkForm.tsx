@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { message } from "antd";
 import { useAppDispatch } from "@/redux/hooks";
 import { persistAuthSession } from "@/lib/authSession";
+import { getPostLoginPath } from "@/lib/postLoginPath";
 
 interface MagicLinkFormProps {
   initialEmail?: string;
@@ -83,7 +84,7 @@ const MagicLinkForm = ({
         }
 
         message.success("Logged in successfully");
-        router.replace("/dashboard");
+        router.replace(getPostLoginPath());
         return;
       }
 

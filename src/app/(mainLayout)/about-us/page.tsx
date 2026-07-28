@@ -1,10 +1,5 @@
+import CmsSitePage from "@/components/Pages/CmsSitePage";
 
-const AboutUsPage = () => {
-  return (
-    <section>
-       abut us
-    </section>
-  )
+export default function AboutUsPage() {
+  return <CmsSitePage slug="about-us" fallbackTitle="About Us" />;
 }
-
-export default AboutUsPage

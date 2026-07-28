@@ -8,14 +8,18 @@ import {
   Save,
   Send,
   X,
+  ImageIcon,
+  Loader2,
 } from "lucide-react";
 import AIIdeaValidation from "./AIIdeaValidation";
-import ImageGenerationPanel from "./ImageGenerationPanel";
-import logo from "@/assets/logo/logo.png";
+// [COMMENT OUT] Standalone image panel — use chat Image mode instead
+// import ImageGenerationPanel from "./ImageGenerationPanel";
+import ChatMessageImage from "./ChatMessageImage";
 import {
   useGetCreditStatusQuery,
   useGetOrCreateConversationQuery,
   useGetSavedOutputsQuery,
+  useGenerateImageMutation,
   useLazyGetGenerationByIdQuery,
   useSaveGenerationMutation,
   useSendConversationMessageMutation,
@@ -26,6 +30,7 @@ import type {
   AggregatedResult,
   ConversationMessage,
   CreditStatus,
+  ImageGenerationType,
   SavedOutput,
   TokenStatus,
 } from "@/types/pioneerx";
@@ -43,21 +48,23 @@ interface AllAITaskListProps {
 
 const CreditMeter = ({ status }: { status: CreditStatus }) => {
   if (status.limit === null) {
-    return (
-      <div className="mt-3 rounded-lg border border-[#2a2a3a] bg-[#18181f] px-3 py-2">
-        <p className="text-[11px] text-[#888]">
-          {status.balance.toLocaleString()} credits remaining
-        </p>
-      </div>
-    );
+    return 
+    // (
+    //   <div className="mt-3 rounded-lg border border-[#2a2a3a] bg-[#18181f] px-3 py-2">
+    //     <p className="text-[11px] text-[#888]">
+    //       {status.balance.toLocaleString()} credits remaining
+    //     </p>
+    //   </div>
+    // );
   }
 
   const exhausted = status.percentage >= 100;
   const warning = status.percentage >= 80 && !exhausted;
 
   return (
-    <div className="mt-3 rounded-lg border border-[#2a2a3a] bg-[#18181f] px-3 py-2">
-      <div className="flex items-center justify-between text-[11px] text-[#888] mb-1.5">
+    <div className="">
+    {/* <div className="mt-3 rounded-lg border border-[#2a2a3a] bg-[#18181f] px-3 py-2"> */}
+      {/* <div className="flex items-center justify-between text-[11px] text-[#888] mb-1.5">
         <span>
           {exhausted
             ? "No credits remaining"
@@ -74,8 +81,8 @@ const CreditMeter = ({ status }: { status: CreditStatus }) => {
         >
           {status.percentage}% used
         </span>
-      </div>
-      <div className="h-1.5 rounded-full bg-[#2a2a2a] overflow-hidden">
+      </div> */}
+      {/* <div className="h-1.5 rounded-full bg-[#2a2a2a] overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${
             exhausted
@@ -86,7 +93,7 @@ const CreditMeter = ({ status }: { status: CreditStatus }) => {
           }`}
           style={{ width: `${Math.min(status.percentage, 100)}%` }}
         />
-      </div>
+      </div> */}
     </div>
   );
 };
@@ -106,6 +113,8 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
   );
 
   const [input, setInput] = useState("");
+  const [chatMode, setChatMode] = useState<"text" | "image">("text");
+  const [imageType, setImageType] = useState<ImageGenerationType>("logo");
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [result, setResult] = useState<AggregatedResult | null>(null);
   const [generationId, setGenerationId] = useState<string | null>(null);
@@ -133,6 +142,8 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
 
   const [sendMessage, { isLoading: isSending }] =
     useSendConversationMessageMutation();
+  const [generateImage, { isLoading: isGeneratingImage }] =
+    useGenerateImageMutation();
   // [COMMENT OUT] Generate button mutation — auto-generation now happens on send
   // const [generateFromConversation, { isLoading: isGenerating }] =
   //   useGenerateFromConversationMutation();
@@ -156,6 +167,8 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
     setSaveLabel("");
     setCreditStatus(null);
     setViewingConversation(null);
+    setChatMode("text");
+    setImageType("logo");
   }, [sectionKey, businessProfileId]);
 
   useEffect(() => {
@@ -203,7 +216,7 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isSending]);
+  }, [messages, isSending, isGeneratingImage]);
 
   const isCurrentSaved = generationId
     ? savedOutputs.some((o) => o.generationId === generationId)
@@ -213,6 +226,8 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
     creditStatus != null &&
     creditStatus.limit != null &&
     creditStatus.percentage >= 100;
+
+  const busy = isSending || isGeneratingImage;
 
   const applyApiError = (err: unknown, fallback: string) => {
     const apiErr = err as {
@@ -302,6 +317,11 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
   };
 
   const handleSend = async () => {
+    if (chatMode === "image") {
+      await handleGenerateChatImage();
+      return;
+    }
+
     const content = input.trim();
     if (!content || isSending || !businessProfileId || creditsExhausted) return;
 
@@ -326,9 +346,91 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
       }).unwrap();
       applyMessageResult(data, optimistic.id);
     } catch (err) {
-      setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
-      setInput(content);
+      // Keep the user bubble in chat; only show the error below
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === optimistic.id ? { ...m, sendFailed: true } : m
+        )
+      );
       applyApiError(err, "Could not send message. Please try again.");
+    }
+  };
+
+  const handleGenerateChatImage = async () => {
+    const prompt = input.trim();
+    if (!prompt || isGeneratingImage || !businessProfileId || creditsExhausted) {
+      return;
+    }
+
+    setError(null);
+    setSaveMessage(null);
+    setInput("");
+
+    const optimistic: ConversationMessage = {
+      id: `temp-img-${Date.now()}`,
+      conversationId: conversation?.id ?? "",
+      role: "user",
+      content: `Generate a ${imageType === "logo" ? "logo" : "business card"}: ${prompt}`,
+      createdAt: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimistic]);
+
+    try {
+      const result = await generateImage({
+        prompt,
+        type: imageType,
+        sectionKey,
+      }).unwrap();
+
+      if (result.creditStatus) setCreditStatus(result.creditStatus);
+
+      setMessages((prev) => {
+        const base = prev.filter((m) => m.id !== optimistic.id);
+        if (result.userMessage && result.assistantMessage) {
+          return [...base, result.userMessage, result.assistantMessage];
+        }
+        return [
+          ...base,
+          {
+            ...optimistic,
+            id: `user-img-${Date.now()}`,
+          },
+          {
+            id: `assistant-img-${Date.now()}`,
+            conversationId: conversation?.id ?? "",
+            role: "assistant",
+            content: `Here's your ${imageType === "logo" ? "logo" : "business card"}.`,
+            imageUrl: result.imageUrl,
+            createdAt: new Date().toISOString(),
+          },
+        ];
+      });
+    } catch (err) {
+      // Keep the user bubble in chat; only show the error below
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === optimistic.id ? { ...m, sendFailed: true } : m
+        )
+      );
+      const apiErr = err as {
+        status?: number;
+        data?: {
+          message?: string;
+          creditLimitReached?: boolean;
+          dailyLimitReached?: boolean;
+          creditStatus?: CreditStatus;
+        };
+      };
+      if (apiErr.data?.creditStatus) setCreditStatus(apiErr.data.creditStatus);
+      if (apiErr.data?.creditLimitReached || apiErr.status === 402) {
+        setError("Not enough credits. Upgrade your plan to continue.");
+        return;
+      }
+      if (apiErr.data?.dailyLimitReached || apiErr.status === 403) {
+        setError("You've reached your daily image limit. Upgrade for more.");
+        return;
+      }
+      applyApiError(err, "Image generation failed. Please try again.");
     }
   };
 
@@ -452,7 +554,6 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
     }
   };
 
-  const busy = isSending;
   const loadingConversation =
     !businessProfileId ||
     isLoadingConversation ||
@@ -482,11 +583,12 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
             {showEmptyPlaceholder && (
               <div className="flex flex-col items-center justify-center h-full min-h-[280px] text-center">
                 <Image
-                  src={logo}
+                  src="/pioneerx-chat-logo.svg"
                   alt="PioneerX"
                   width={48}
                   height={48}
                   className="mb-4 opacity-90"
+                  unoptimized
                 />
                 <p className="text-[16px] md:text-[18px] font-semibold text-white tracking-tight">
                   Where We Mind Your Business
@@ -508,21 +610,43 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
                       className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap ${
+                        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed ${
                           isUser
-                            ? "bg-[#6c5ce7] text-white rounded-br-md"
+                            ? msg.sendFailed
+                              ? "bg-[#6c5ce7]/70 text-white rounded-br-md ring-1 ring-red-400/50"
+                              : "bg-[#6c5ce7] text-white rounded-br-md"
                             : "bg-[#1a1a24] border border-[#2a2a3a] text-[#ddd] rounded-bl-md"
                         }`}
                       >
-                        {msg.content}
+                        {msg.content && (
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        )}
+                        {msg.sendFailed && (
+                          <p className="mt-1.5 text-[11px] text-red-200/90">
+                            Failed to send
+                          </p>
+                        )}
+                        {msg.imageUrl && (
+                          <ChatMessageImage
+                            imageUrl={msg.imageUrl}
+                            isUser={isUser}
+                          />
+                        )}
                       </div>
                     </div>
                   );
                 })}
-                {isSending && (
+                {(isSending || isGeneratingImage) && (
                   <div className="flex justify-start">
-                    <div className="bg-[#1a1a24] border border-[#2a2a3a] rounded-2xl rounded-bl-md px-4 py-2.5 text-[12px] text-[#888]">
-                      Thinking...
+                    <div className="bg-[#1a1a24] border border-[#2a2a3a] rounded-2xl rounded-bl-md px-4 py-2.5 text-[12px] text-[#888] flex items-center gap-2">
+                      {isGeneratingImage ? (
+                        <>
+                          <Loader2 size={13} className="animate-spin" />
+                          Generating image...
+                        </>
+                      ) : (
+                        "Thinking..."
+                      )}
                     </div>
                   </div>
                 )}
@@ -532,6 +656,50 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
           </div>
 
           <div className="border-t border-[#2a2a3a] px-4 py-3">
+            <div className="flex items-center gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => setChatMode("text")}
+                className={`text-[11px] px-2.5 py-1 rounded-md border transition-colors ${
+                  chatMode === "text"
+                    ? "border-[#6c5ce7] bg-[#6c5ce7]/15 text-white"
+                    : "border-[#2a2a3a] text-[#888] hover:border-[#444]"
+                }`}
+              >
+                Chat
+              </button>
+              <button
+                type="button"
+                onClick={() => setChatMode("image")}
+                className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-md border transition-colors ${
+                  chatMode === "image"
+                    ? "border-[#6c5ce7] bg-[#6c5ce7]/15 text-white"
+                    : "border-[#2a2a3a] text-[#888] hover:border-[#444]"
+                }`}
+              >
+                <ImageIcon size={12} />
+                Image
+              </button>
+              {chatMode === "image" && (
+                <>
+                  {(["logo", "business_card"] as const).map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setImageType(option)}
+                      className={`text-[11px] px-2.5 py-1 rounded-md border transition-colors ${
+                        imageType === option
+                          ? "border-[#6c5ce7] bg-[#6c5ce7]/15 text-white"
+                          : "border-[#2a2a3a] text-[#888] hover:border-[#444]"
+                      }`}
+                    >
+                      {option === "logo" ? "Logo" : "Business Card"}
+                    </button>
+                  ))}
+                </>
+              )}
+            </div>
+
             <div className="flex items-center gap-2">
               <div className="flex-1 relative">
                 <input
@@ -544,7 +712,11 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
                       handleSend();
                     }
                   }}
-                  placeholder="Where We Mind Your Business"
+                  placeholder={
+                    chatMode === "image"
+                      ? `Describe the ${imageType === "logo" ? "logo" : "business card"}...`
+                      : "Where We Mind Your Business"
+                  }
                   disabled={busy || !businessProfileId || creditsExhausted}
                   className="w-full bg-[#18181f] border border-[#2a2a3a] rounded-lg text-[#ccc] placeholder-[#555] text-[13px] px-3 py-2.5 outline-none focus:border-[#6c5ce7] transition-colors disabled:opacity-60"
                 />
@@ -561,8 +733,21 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
                 }
                 className="flex items-center gap-2 bg-[#6c5ce7] hover:bg-[#5a4bd1] disabled:opacity-60 text-white text-[13px] font-semibold px-4 py-2.5 rounded-lg transition-colors whitespace-nowrap"
               >
-                <Send size={14} />
-                {isSending ? "Sending..." : "Send Message"}
+                {chatMode === "image" ? (
+                  <>
+                    {isGeneratingImage ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <ImageIcon size={14} />
+                    )}
+                    {isGeneratingImage ? "Generating..." : "Generate Image"}
+                  </>
+                ) : (
+                  <>
+                    <Send size={14} />
+                    {isSending ? "Sending..." : "Send Message"}
+                  </>
+                )}
               </button>
 
               {/* [COMMENT OUT] Generate button — auto-generation on every message
@@ -708,7 +893,9 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
 
           <AIIdeaValidation result={result} compact />
 
+          {/* [COMMENT OUT] Standalone Image Generation panel — chatbox Image mode covers this
           <ImageGenerationPanel />
+          */}
 
           <p className="text-[11px] text-red-500/90 leading-relaxed px-1">
             AI can make mistakes. Please verify important information before
@@ -750,13 +937,18 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
                     className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[90%] rounded-2xl px-3 py-2 text-[12px] leading-relaxed whitespace-pre-wrap ${
+                      className={`max-w-[90%] rounded-2xl px-3 py-2 text-[12px] leading-relaxed ${
                         isUser
                           ? "bg-[#6c5ce7] text-white"
                           : "bg-[#1a1a24] border border-[#2a2a3a] text-[#ddd]"
                       }`}
                     >
-                      {msg.content}
+                      {msg.content && (
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      )}
+                      {msg.imageUrl && (
+                        <ChatMessageImage imageUrl={msg.imageUrl} isUser={isUser} />
+                      )}
                     </div>
                   </div>
                 );

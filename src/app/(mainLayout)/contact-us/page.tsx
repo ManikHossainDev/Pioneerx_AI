@@ -1,12 +1,5 @@
+import CmsSitePage from "@/components/Pages/CmsSitePage";
 
-import React from 'react'
-
-const ContactUsPage = () => {
-  return (
-    <section>
-        ContactUs
-    </section>
-  )
+export default function ContactUsPage() {
+  return <CmsSitePage slug="contact-us" fallbackTitle="Contact Us" />;
 }
-
-export default ContactUsPage

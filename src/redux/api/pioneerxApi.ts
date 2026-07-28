@@ -14,6 +14,13 @@ import type {
   SavedOutput,
   Section,
   SendMessageResponse,
+  BillingPlan,
+  BillingInterval,
+  CheckoutSessionResult,
+  PortalSessionResult,
+  CheckoutSessionStatus,
+  PaymentRecord,
+  UserSubscription,
 } from "@/types/pioneerx";
 
 export const pioneerxApi = baseApi.injectEndpoints({
@@ -164,7 +171,7 @@ export const pioneerxApi = baseApi.injectEndpoints({
 
     generateImage: builder.mutation<
       ImageGenerateResponse,
-      { prompt: string; type: ImageGenerationType }
+      { prompt: string; type: ImageGenerationType; sectionKey?: string }
     >({
       query: (body) => ({
         url: "/image/generate",
@@ -172,7 +179,22 @@ export const pioneerxApi = baseApi.injectEndpoints({
         body,
       }),
       transformResponse: (res: ApiResponse<ImageGenerateResponse>) => res.data,
-      invalidatesTags: ["CreditStatus"],
+      invalidatesTags: ["CreditStatus", "Conversations"],
+    }),
+
+    getImageGeneration: builder.query<
+      { id: string; imageUrl: string; prompt: string; createdAt: string },
+      string
+    >({
+      query: (id) => `/image/generations/${id}`,
+      transformResponse: (
+        res: ApiResponse<{
+          id: string;
+          imageUrl: string;
+          prompt: string;
+          createdAt: string;
+        }>
+      ) => res.data,
     }),
 
     getReviews: builder.query<AppReview[], void>({
@@ -192,6 +214,63 @@ export const pioneerxApi = baseApi.injectEndpoints({
       }),
       transformResponse: (res: ApiResponse<{ message: string }>) =>
         res.data ?? { message: (res as unknown as { message?: string }).message || "Review submitted." },
+    }),
+
+    getSitePage: builder.query<
+      { slug: string; title: string; body: string; updatedAt: string },
+      string
+    >({
+      query: (slug) => `/site-pages/${slug}`,
+      transformResponse: (
+        res: ApiResponse<{
+          slug: string;
+          title: string;
+          body: string;
+          updatedAt: string;
+        }>
+      ) => res.data,
+    }),
+
+    getBillingPlans: builder.query<BillingPlan[], void>({
+      query: () => "/billing/plans",
+      transformResponse: (res: ApiResponse<BillingPlan[]>) => res.data ?? [],
+      providesTags: ["PricingPlans"],
+    }),
+
+    createCheckoutSession: builder.mutation<
+      CheckoutSessionResult,
+      { priceId?: string; tier?: string; interval?: BillingInterval }
+    >({
+      query: (body) => ({
+        url: "/billing/checkout-session",
+        method: "POST",
+        body,
+      }),
+      transformResponse: (res: ApiResponse<CheckoutSessionResult>) => res.data,
+    }),
+
+    createPortalSession: builder.mutation<PortalSessionResult, void>({
+      query: () => ({
+        url: "/billing/portal-session",
+        method: "POST",
+      }),
+      transformResponse: (res: ApiResponse<PortalSessionResult>) => res.data,
+    }),
+
+    getCheckoutSession: builder.query<CheckoutSessionStatus, string>({
+      query: (sessionId) => `/billing/checkout-session/${sessionId}`,
+      transformResponse: (res: ApiResponse<CheckoutSessionStatus>) => res.data,
+    }),
+
+    getBillingPayments: builder.query<PaymentRecord[], void>({
+      query: () => "/billing/payments",
+      transformResponse: (res: ApiResponse<PaymentRecord[]>) => res.data ?? [],
+      providesTags: ["Payment"],
+    }),
+
+    getMySubscription: builder.query<UserSubscription, void>({
+      query: () => "/subscription/me",
+      transformResponse: (res: ApiResponse<UserSubscription>) => res.data,
     }),
   }),
 });
@@ -214,6 +293,16 @@ export const {
   useMarkNotificationReadMutation,
   useMarkAllNotificationsReadMutation,
   useGenerateImageMutation,
+  useLazyGetImageGenerationQuery,
   useGetReviewsQuery,
   useSubmitReviewMutation,
+  useGetSitePageQuery,
+  useGetBillingPlansQuery,
+  useCreateCheckoutSessionMutation,
+  useCreatePortalSessionMutation,
+  useGetCheckoutSessionQuery,
+  useLazyGetCheckoutSessionQuery,
+  useGetBillingPaymentsQuery,
+  useGetMySubscriptionQuery,
+  useLazyGetMySubscriptionQuery,
 } = pioneerxApi;
