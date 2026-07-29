@@ -218,6 +218,8 @@ export interface BillingPlan {
   interval: string;
   label: string | null;
   amount: number | null;
+  /** Crossed-out “was” price in cents; null = hide line-through */
+  compareAtAmount?: number | null;
   currency: string;
 }
 
@@ -260,5 +262,11 @@ export interface UserSubscription {
   cancelAtPeriodEnd?: boolean;
   stripeCustomerId?: string | null;
   trialEndsAt?: string | null;
+}
+
+export interface PublicPromoCode {
+  code: string;
+  trialDays: number;
+  expiresAt: string | null;
 }
 

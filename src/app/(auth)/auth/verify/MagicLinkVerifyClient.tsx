@@ -44,7 +44,7 @@ const MagicLinkVerifyClient = () => {
     const email = parseJwtPayload(tokens.access_token).email ?? "";
     persistAuthSession(dispatch, tokens, email);
     message.success("Logged in successfully");
-    router.replace("/dashboard");
+    router.replace("/idea-validation");
   }, [tokens, dispatch, router]);
 
   return (

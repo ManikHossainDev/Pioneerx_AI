@@ -119,7 +119,7 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
         </div>
       )}
 
-      <Link
+      {/* <Link
         href="/dashboard"
         className="block no-underline"
         onClick={() => {
@@ -171,7 +171,7 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
             Dashboard
           </span>
         </div>
-      </Link>
+      </Link> */}
 
       <div className="px-[4px] pb-6">
         {isLoading && (
@@ -252,10 +252,9 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
                       rounded-[6px]
                       cursor-pointer
                       transition-colors duration-150
-                      ${
-                        isActive
-                          ? "bg-[rgba(124,111,247,0.16)]"
-                          : isHovered
+                      ${isActive
+                        ? "bg-[rgba(124,111,247,0.16)]"
+                        : isHovered
                           ? "bg-[rgba(255,255,255,0.05)]"
                           : "bg-transparent"
                       }
@@ -264,9 +263,8 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
                     <item.Icon
                       size={20}
                       strokeWidth={1.65}
-                      className={`shrink-0 transition-colors duration-150 ${
-                        lit ? "text-[#a78bfa]" : "text-[#555872]"
-                      }`}
+                      className={`shrink-0 transition-colors duration-150 ${lit ? "text-[#a78bfa]" : "text-[#555872]"
+                        }`}
                     />
                     <span
                       className={`
@@ -345,16 +343,14 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black/50 z-[100] transition-opacity duration-300 lg:hidden ${
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black/50 z-[100] transition-opacity duration-300 lg:hidden ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
         onClick={onClose}
       />
 
       <div
-        className={`fixed top-0 left-0 bottom-0 w-64 bg-[#0f1011] z-[101] transform transition-transform duration-300 ease-in-out lg:hidden ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 bottom-0 w-64 bg-[#0f1011] z-[101] transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {sidebarContent}
       </div>

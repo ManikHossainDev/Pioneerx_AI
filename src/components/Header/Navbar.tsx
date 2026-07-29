@@ -136,13 +136,13 @@ const Navbar = () => {
 
               {accountOpen && (
                 <div className="absolute right-0 top-[calc(100%+8px)] z-[60] min-w-[180px] rounded-xl border border-white/15 bg-[#14151a] p-1.5 shadow-2xl">
-                  <Link
+                  {/* <Link
                     href="/dashboard"
                     onClick={() => setAccountOpen(false)}
                     className="block rounded-lg px-3 py-2 text-sm text-[#c8c8cf] hover:bg-white/5 hover:text-white"
                   >
                     Dashboard
-                  </Link>
+                  </Link> */}
                   <button
                     type="button"
                     onClick={confirmLogout}
@@ -164,7 +164,7 @@ const Navbar = () => {
           )}
           {isLoggedIn ? (
             <Link
-              href="/dashboard"
+              href="/idea-validation"
               className="text-sm font-medium text-[#615FFF] bg-[#FFFFFF] px-4 py-2 rounded-md transition"
             >
               Get Started
@@ -268,7 +268,7 @@ const Navbar = () => {
             </button>
           )}
           {isLoggedIn ? (
-            <Link href="/dashboard" onClick={() => setIsDrawerOpen(false)}>
+            <Link href="/idea-validation" onClick={() => setIsDrawerOpen(false)}>
               <button
                 type="button"
                 className="w-full py-2 bg-[#615FFF] text-white rounded-md text-sm font-medium"

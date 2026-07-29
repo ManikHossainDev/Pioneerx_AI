@@ -59,6 +59,11 @@ const Footer = () => {
                   Modules
                 </Link>
               </li>
+              <li>
+                <Link href="/promo-codes" className="hover:text-gray-200">
+                  Promo codes
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

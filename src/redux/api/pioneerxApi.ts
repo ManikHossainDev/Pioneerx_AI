@@ -21,6 +21,7 @@ import type {
   CheckoutSessionStatus,
   PaymentRecord,
   UserSubscription,
+  PublicPromoCode,
 } from "@/types/pioneerx";
 
 export const pioneerxApi = baseApi.injectEndpoints({
@@ -272,6 +273,12 @@ export const pioneerxApi = baseApi.injectEndpoints({
       query: () => "/subscription/me",
       transformResponse: (res: ApiResponse<UserSubscription>) => res.data,
     }),
+
+    getPublicPromoCodes: builder.query<PublicPromoCode[], void>({
+      query: () => "/promo-codes",
+      transformResponse: (res: ApiResponse<PublicPromoCode[]>) =>
+        res.data ?? [],
+    }),
   }),
 });
 
@@ -305,4 +312,5 @@ export const {
   useGetBillingPaymentsQuery,
   useGetMySubscriptionQuery,
   useLazyGetMySubscriptionQuery,
+  useGetPublicPromoCodesQuery,
 } = pioneerxApi;

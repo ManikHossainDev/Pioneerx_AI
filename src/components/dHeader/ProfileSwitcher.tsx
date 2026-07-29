@@ -10,6 +10,7 @@ import {
   LuPencil,
   LuPlus,
   LuStar,
+  LuTrash2,
 } from "react-icons/lu";
 import { ImSpinner6 } from "react-icons/im";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ import { logout, selectCurrentUser, selectToken } from "@/redux/features/auth/au
 import {
   useActivateBusinessProfileMutation,
   useCreateBusinessProfileMutation,
+  useDeleteBusinessProfileMutation,
   useGetProfileContextQuery,
   useUpdateBusinessProfileMutation,
 } from "@/redux/api/businessProfileApi";
@@ -31,6 +33,7 @@ import { getApiErrorMessage } from "@/utils/apiError";
 import CreateBusinessProfileForm from "@/components/dashboard/CreateBusinessProfileForm";
 import LeaveReviewModal from "./LeaveReviewModal";
 import LogoutConfirmModal from "@/components/Header/LogoutConfirmModal";
+import DeleteProfileConfirmModal from "./DeleteProfileConfirmModal";
 
 const ProfileSwitcher = () => {
   const dispatch = useAppDispatch();
@@ -44,6 +47,8 @@ const ProfileSwitcher = () => {
   );
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [profileToDelete, setProfileToDelete] =
+    useState<BusinessProfile | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, isFetching } = useGetProfileContextQuery(undefined, {
@@ -56,6 +61,8 @@ const ProfileSwitcher = () => {
     useCreateBusinessProfileMutation();
   const [updateProfile, { isLoading: isUpdating }] =
     useUpdateBusinessProfileMutation();
+  const [deleteProfile, { isLoading: isDeleting }] =
+    useDeleteBusinessProfileMutation();
 
   const activeProfile = data?.activeProfile;
   const profiles = data?.profiles ?? [];
@@ -129,6 +136,24 @@ const ProfileSwitcher = () => {
     event.stopPropagation();
     setShowAddForm(false);
     setEditingProfile(profile);
+  };
+
+  const startDelete = (profile: BusinessProfile, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setOpen(false);
+    setProfileToDelete(profile);
+  };
+
+  const confirmDelete = async () => {
+    if (!profileToDelete) return;
+
+    try {
+      await deleteProfile(profileToDelete.id).unwrap();
+      toast.success(`Deleted ${profileDisplayName(profileToDelete)}`);
+      setProfileToDelete(null);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, "Failed to delete profile"));
+    }
   };
 
   if (!token) {
@@ -218,6 +243,16 @@ const ProfileSwitcher = () => {
                     >
                       <LuPencil size={14} />
                     </button>
+                    {profiles.length > 1 && (
+                      <button
+                        type="button"
+                        title="Delete business"
+                        onClick={(e) => startDelete(profile, e)}
+                        className="shrink-0 p-2 text-[#6b6b8a] hover:text-red-400 rounded-md transition-colors"
+                      >
+                        <LuTrash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 );
               })}
@@ -303,6 +338,15 @@ const ProfileSwitcher = () => {
         open={logoutConfirmOpen}
         onContinue={() => setLogoutConfirmOpen(false)}
         onLogout={confirmLogout}
+      />
+      <DeleteProfileConfirmModal
+        open={!!profileToDelete}
+        profileName={
+          profileToDelete ? profileDisplayName(profileToDelete) : ""
+        }
+        isDeleting={isDeleting}
+        onCancel={() => setProfileToDelete(null)}
+        onConfirm={confirmDelete}
       />
     </div>
   );

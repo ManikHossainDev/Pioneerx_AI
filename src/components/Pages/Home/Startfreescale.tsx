@@ -150,11 +150,15 @@ const Startfreescale = () => {
       const live = apiPlans.find(
         (p) => p.tier === plan.tierKey && p.interval === "month",
       );
-      if (!live?.amount) return plan;
+      if (!live?.amount && live?.amount !== 0) return plan;
       return {
         ...plan,
-        price: formatMoney(live.amount, live.currency || "usd"),
+        price: formatMoney(live.amount!, live.currency || "usd"),
         per: "/m",
+        oldPrice:
+          live.compareAtAmount != null && live.compareAtAmount > 0
+            ? formatMoney(live.compareAtAmount, live.currency || "usd")
+            : null,
       };
     });
   }, [apiPlans]);

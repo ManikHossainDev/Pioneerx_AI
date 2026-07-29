@@ -24,7 +24,7 @@ export default function GetStartedCta({
 
   const onClick = () => {
     if (token) {
-      router.push("/dashboard");
+      router.push("/idea-validation");
       return;
     }
     onNeedAuth?.();
