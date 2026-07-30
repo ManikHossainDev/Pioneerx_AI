@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Providers from '../lib/Providers';
+import SplashWrapper from "@/components/UI/SplashWrapper";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,7 +27,6 @@ export const viewport: Viewport = {
   ],
 };
 
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,8 +36,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <SplashWrapper>
+            {children}
+          </SplashWrapper>
+        </Providers>
       </body>
     </html>
   );

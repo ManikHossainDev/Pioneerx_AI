@@ -9,13 +9,11 @@ import EveryToolYour from "@/components/Pages/Home/Everytoolyour";
 import Buildwithpioneer from "@/components/Pages/Home/buildwithpioneer";
 import FounderslovePioneer from "@/components/Pages/Home/FounderslovePioneer";
 import FreeTrialPopup from "@/components/Header/FreeTrialPopup";
-
 const HomePage = () => {
   return (
     <section>
       <FreeTrialPopup />
       <HeroBannerSection />
-
       <div className="relative w-full h-full overflow-hidden px-1 xl:px-0">
         <Image
           width={500}
@@ -26,9 +24,7 @@ const HomePage = () => {
           style={{ transform: "rotate(35deg)" }}
           priority
         />
-
         <div className="absolute inset-0 bg-black/20 z-0 backdrop-blur-sm" />
-
         <div className="relative z-10">
           <div className="flex items-start justify-center min-h-full py-8 sm:py-12">
             <div className="w-full xl:container mx-auto">
@@ -42,7 +38,6 @@ const HomePage = () => {
                 </p>
                 <Buildwithpioneer />
               </div>
-
               <div id="business">
                 <EveryToolYour />
               </div>
@@ -50,9 +45,7 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-
       <PoweredbyAI />
-
       <div className="relative w-full overflow-hidden pt-6 sm:pt-10">
         <Image
           width={500}
@@ -62,9 +55,7 @@ const HomePage = () => {
           className="w-full rotate-[100deg] md:rotate-[158deg] h-[100vh] object-center xl:object-cover"
           priority
         />
-
         <div className="absolute inset-0 bg-black/20 z-0 backdrop-blur-sm" />
-
         <div className="absolute inset-0 z-10 overflow-y-auto scrollbar-hide">
           <div className="flex items-start justify-center min-h-full px-2 md:px-6 py-8 sm:py-12">
             <div id="pricing" className="w-full xl:container mx-auto">
@@ -77,19 +68,14 @@ const HomePage = () => {
                   and helps you execute.
                 </p>
                 <Startfreescale />
+                <FounderslovePioneer />
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="w-full xl:container mx-auto px-2 md:px-6">
-        <FounderslovePioneer />
-      </div>
-
+      </div>      
       <Readytobuild />
     </section>
   );
 };
-
 export default HomePage;
