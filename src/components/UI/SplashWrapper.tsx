@@ -12,7 +12,7 @@ export default function SplashWrapper({
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    const duration = 11000; // 7 sec
+    const duration = 5000; // 7 sec
 
     const timer = setTimeout(() => {
       setShowSplash(false);
@@ -21,11 +21,10 @@ export default function SplashWrapper({
     return () => clearTimeout(timer);
   }, []);
 
-  if (!showSplash) return <>{children}</>;
-
+  if (!showSplash) return <>{children}</>; 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black">
-      <div className="relative w-full md:w-[40vw] h-[100vh] rounded-lg overflow-hidden">
+      <div className="relative w-full  h-[100vh] rounded-lg overflow-hidden">
         <Image
           src={loadingGif}
           alt="Loading..."

@@ -30,11 +30,11 @@ const cards = [
       "Connects current trends, live information, and productivity workflows to keep your business ahead.",
   },
   {
-    aiName: "Many More",
+    aiName: "grok",
     aiIcon: "more" as const,
-    title: "Other Popular AI Systems",
+    title: "Instant Insights, Powered by Live Data",
     description:
-      "Our platform intelligently chooses and combines the best AI responses to deliver the most effective business solutions.",
+      "Explore trends, verify facts, and get real-time AI-powered answers.",
   },
 ];
 
