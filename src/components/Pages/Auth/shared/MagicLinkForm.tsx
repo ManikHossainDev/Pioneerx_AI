@@ -67,7 +67,7 @@ const MagicLinkForm = ({
       }).unwrap();
 
       if (res && typeof res === "object" && "access_token" in res && "refresh_token" in res) {
-        persistAuthSession(dispatch, res as any, email.trim());
+        await persistAuthSession(dispatch, res as any, email.trim());
 
         if (code) {
           try {

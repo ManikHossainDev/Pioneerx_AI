@@ -48,7 +48,7 @@ const DevPasswordLogin = ({ variant = "page" }: DevPasswordLoginProps) => {
         password,
       }).unwrap();
 
-      persistAuthSession(dispatch, tokens, email.trim());
+      await persistAuthSession(dispatch, tokens, email.trim());
       message.success("Logged in (dev password)");
       router.replace(getPostLoginPath());
     } catch (err: unknown) {

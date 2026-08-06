@@ -2,8 +2,17 @@ import type { AppDispatch } from "@/redux/store";
 import { setUser } from "@/redux/features/auth/authSlice";
 import type { AuthTokens } from "@/types/auth";
 import { userFromToken } from "@/utils/jwt";
+import { baseApi } from "@/redux/api/baseApi";
 
-export function persistAuthSession(
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://mohaimin8003.sobhoy.com/api/v1";
+
+/**
+ * Persist tokens + clear active chat pointers so section chats start fresh
+ * after re-login. Does not delete conversations or saved outputs.
+ */
+export async function persistAuthSession(
   dispatch: AppDispatch,
   tokens: AuthTokens,
   email: string,
@@ -17,6 +26,20 @@ export function persistAuthSession(
       refreshToken: tokens.refresh_token,
     })
   );
+
+  try {
+    await fetch(`${API_BASE}/conversations/session/reset`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${tokens.access_token}`,
+        "Content-Type": "application/json",
+      },
+    });
+  } catch {
+    // Non-blocking — chat may still show previous active thread until next login
+  }
+
+  dispatch(baseApi.util.invalidateTags(["Conversations"]));
 }
 
 export function tokensFromSearchParams(

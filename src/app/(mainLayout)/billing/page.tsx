@@ -135,6 +135,17 @@ export default function BillingManagePage() {
         </div>
       </div>
 
+      <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-5 mb-5">
+        <h2 className="text-sm font-semibold text-amber-200 mb-1.5">
+          Refund policy
+        </h2>
+        <p className="text-sm text-amber-100/80 leading-relaxed">
+          Payments processed through Stripe are final. Once a subscription or
+          charge is completed, refunds are not available. You can cancel renewal
+          anytime so you are not billed for the next period.
+        </p>
+      </div>
+
       <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
         <h2 className="text-sm font-semibold text-white mb-3">
           Recent payments

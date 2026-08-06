@@ -44,9 +44,51 @@ export const pioneerxApi = baseApi.injectEndpoints({
     >({
       query: ({ sectionKey }) => `/conversations/${sectionKey}`,
       transformResponse: (res: ApiResponse<Conversation>) => res.data,
+      // Keep warm across section switches so remounts can paint from cache.
+      keepUnusedDataFor: 300,
       providesTags: (_result, _error, { sectionKey, businessProfileId }) => [
         { type: "Conversations", id: `${businessProfileId}:${sectionKey}` },
         "Conversations",
+      ],
+    }),
+
+    resetConversationSession: builder.mutation<{ reset: boolean }, void>({
+      query: () => ({
+        url: "/conversations/session/reset",
+        method: "POST",
+      }),
+      transformResponse: (res: ApiResponse<{ reset: boolean }>) => res.data,
+      invalidatesTags: ["Conversations"],
+    }),
+
+    startFreshConversation: builder.mutation<
+      Conversation,
+      { sectionKey: string; businessProfileId: string }
+    >({
+      query: ({ sectionKey }) => ({
+        url: `/conversations/${sectionKey}/new`,
+        method: "POST",
+      }),
+      transformResponse: (res: ApiResponse<Conversation>) => res.data,
+      invalidatesTags: (_result, _error, { sectionKey, businessProfileId }) => [
+        { type: "Conversations", id: `${businessProfileId}:${sectionKey}` },
+        "Conversations",
+      ],
+    }),
+
+    openSavedOutput: builder.mutation<
+      Conversation,
+      { id: string; businessProfileId: string; sectionKey: string }
+    >({
+      query: ({ id }) => ({
+        url: `/saved-outputs/${id}/open`,
+        method: "POST",
+      }),
+      transformResponse: (res: ApiResponse<Conversation>) => res.data,
+      invalidatesTags: (_result, _error, { sectionKey, businessProfileId }) => [
+        { type: "Conversations", id: `${businessProfileId}:${sectionKey}` },
+        "Conversations",
+        "SavedOutputs",
       ],
     }),
 
@@ -123,6 +165,7 @@ export const pioneerxApi = baseApi.injectEndpoints({
           : "/saved-outputs";
       },
       transformResponse: (res: ApiResponse<SavedOutput[]>) => res.data,
+      keepUnusedDataFor: 300,
       providesTags: ["SavedOutputs"],
     }),
 
@@ -286,6 +329,9 @@ export const {
   useGetSectionsQuery,
   useGetDailyTasksTodayQuery,
   useGetOrCreateConversationQuery,
+  useResetConversationSessionMutation,
+  useStartFreshConversationMutation,
+  useOpenSavedOutputMutation,
   useSendConversationMessageMutation,
   useGenerateFromConversationMutation,
   useToggleDailyTaskMutation,

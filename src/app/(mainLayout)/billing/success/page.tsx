@@ -68,6 +68,10 @@ function SuccessInner() {
             Session: {sessionId}
           </p>
         )}
+        <p className="mb-5 text-xs text-amber-200/90 leading-relaxed rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2.5">
+          Payments are final — Stripe charges are non-refundable after
+          completion.
+        </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/dashboard"

@@ -20,14 +20,16 @@ import {
   useGetOrCreateConversationQuery,
   useGetSavedOutputsQuery,
   useGenerateImageMutation,
-  useLazyGetGenerationByIdQuery,
+  useOpenSavedOutputMutation,
   useSaveGenerationMutation,
   useSendConversationMessageMutation,
+  useStartFreshConversationMutation,
   useUnsaveGenerationMutation,
 } from "@/redux/api/pioneerxApi";
 import { useGetProfileContextQuery } from "@/redux/api/businessProfileApi";
 import type {
   AggregatedResult,
+  Conversation,
   ConversationMessage,
   CreditStatus,
   ImageGenerationType,
@@ -123,9 +125,6 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
   const [selectedSavedId, setSelectedSavedId] = useState<string | null>(null);
   const [creditStatus, setCreditStatus] = useState<CreditStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [viewingConversation, setViewingConversation] = useState<
-    ConversationMessage[] | null
-  >(null);
 
   const { data: globalCredit } = useGetCreditStatusQuery(undefined, {
     skip: !token,
@@ -134,7 +133,6 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
   const {
     data: conversation,
     isLoading: isLoadingConversation,
-    isFetching: isFetchingConversation,
   } = useGetOrCreateConversationQuery(
     { sectionKey, businessProfileId: businessProfileId! },
     { skip: !businessProfileId }
@@ -149,7 +147,10 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
   //   useGenerateFromConversationMutation();
   const [saveGeneration, { isLoading: isSaving }] = useSaveGenerationMutation();
   const [unsaveGeneration] = useUnsaveGenerationMutation();
-  const [fetchGeneration] = useLazyGetGenerationByIdQuery();
+  const [openSavedOutput, { isLoading: isOpeningSaved }] =
+    useOpenSavedOutputMutation();
+  const [startFreshConversation, { isLoading: isStartingFresh }] =
+    useStartFreshConversationMutation();
   const { data: savedOutputs = [], isLoading: isLoadingSaved } =
     useGetSavedOutputsQuery(
       { sectionKey },
@@ -157,16 +158,10 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
     );
 
   useEffect(() => {
+    // Soft reset only — keep chat paintable from RTK cache on section switch.
     setInput("");
-    setSelectedSavedId(null);
     setError(null);
     setSaveMessage(null);
-    setMessages([]);
-    setResult(null);
-    setGenerationId(null);
-    setSaveLabel("");
-    setCreditStatus(null);
-    setViewingConversation(null);
     setChatMode("text");
     setImageType("logo");
   }, [sectionKey, businessProfileId]);
@@ -182,6 +177,7 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
     }
 
     setMessages(conversation.messages ?? []);
+    setSelectedSavedId(conversation.savedOutputId ?? null);
 
     const latest = conversation.latestGeneration;
     if (latest) {
@@ -198,7 +194,10 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
 
       setResult(aggregated);
       setGenerationId(latest.id);
-      setSaveLabel(`${sectionName} — ${new Date(latest.createdAt ?? Date.now()).toLocaleDateString()}`);
+      setSaveLabel(
+        conversation.label ??
+          `${sectionName} — ${new Date(latest.createdAt ?? Date.now()).toLocaleDateString()}`
+      );
       return;
     }
 
@@ -214,9 +213,19 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
     setSaveLabel("");
   }, [conversation, businessProfileId, sectionName, cached]);
 
+  // Prefer local messages (optimistic send); fall back to cached conversation immediately.
+  const conversationReady =
+    !!conversation && conversation.businessProfileId === businessProfileId;
+  const displayMessages =
+    messages.length > 0
+      ? messages
+      : conversationReady
+        ? (conversation.messages ?? [])
+        : [];
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isSending, isGeneratingImage]);
+  }, [displayMessages, isSending, isGeneratingImage]);
 
   const isCurrentSaved = generationId
     ? savedOutputs.some((o) => o.generationId === generationId)
@@ -227,7 +236,7 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
     creditStatus.limit != null &&
     creditStatus.percentage >= 100;
 
-  const busy = isSending || isGeneratingImage;
+  const busy = isSending || isGeneratingImage || isOpeningSaved || isStartingFresh;
 
   const applyApiError = (err: unknown, fallback: string) => {
     const apiErr = err as {
@@ -494,7 +503,11 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
         id: generationId,
         label: saveLabel.trim(),
       }).unwrap();
-      setSaveMessage("Saved successfully.");
+      setSaveMessage(
+        selectedSavedId
+          ? "Saved output updated."
+          : "Saved successfully."
+      );
     } catch (err: unknown) {
       const apiErr = err as { data?: { message?: string } };
       setSaveMessage(
@@ -514,67 +527,105 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
     }
   };
 
-  const handleViewSaved = async (output: SavedOutput) => {
-    setSelectedSavedId(output.id);
-    setSaveMessage(null);
-    setError(null);
+  const applyOpenedConversation = (opened: {
+    messages?: ConversationMessage[];
+    savedOutputId?: string | null;
+    label?: string | null;
+    latestGeneration?: Conversation["latestGeneration"];
+  }) => {
+    setMessages(opened.messages ?? []);
+    setSelectedSavedId(opened.savedOutputId ?? null);
+    setSaveLabel(opened.label ?? saveLabel);
 
-    const aggregated = output.generation?.aggregatedResult;
-    if (aggregated) {
-      setResult({
-        action_steps: aggregated.action_steps ?? [],
-        suggested_links: aggregated.suggested_links ?? [],
-      });
-    }
-    setGenerationId(output.generationId);
-    setSaveLabel(output.label ?? "");
-
-    const embedded = output.generation?.conversation?.messages;
-    if (embedded?.length) {
-      setViewingConversation(embedded);
-      return;
-    }
-
-    try {
-      const detail = await fetchGeneration(output.generationId).unwrap();
-      const msgs = detail.conversation?.messages ?? [];
-      setViewingConversation(msgs);
-
-      if (detail.aggregatedResult) {
-        setResult(detail.aggregatedResult);
-      } else if (detail.action_steps || detail.suggested_links) {
-        setResult({
-          action_steps: detail.action_steps ?? [],
-          suggested_links: detail.suggested_links ?? [],
-        });
-      }
-    } catch {
-      setViewingConversation(null);
-      setError("Could not load the conversation for this saved output.");
+    const latest = opened.latestGeneration;
+    if (latest) {
+      const aggregated: AggregatedResult = {
+        action_steps:
+          (latest.aggregatedResult?.action_steps?.length
+            ? latest.aggregatedResult.action_steps
+            : latest.actionSteps?.map((s) => ({
+                text: s.text,
+                description: s.description ?? "",
+              }))) ?? [],
+        suggested_links: latest.aggregatedResult?.suggested_links ?? [],
+      };
+      setResult(aggregated);
+      setGenerationId(latest.id);
     }
   };
 
+  const handleViewSaved = async (output: SavedOutput) => {
+    if (!businessProfileId) return;
+    setSaveMessage(null);
+    setError(null);
+
+    try {
+      const opened = await openSavedOutput({
+        id: output.id,
+        businessProfileId,
+        sectionKey,
+      }).unwrap();
+      applyOpenedConversation(opened);
+      setSaveMessage("Loaded saved conversation — continue chatting, then Save to update.");
+    } catch {
+      setError("Could not open this saved output in the chat.");
+    }
+  };
+
+  const handleNewChat = async () => {
+    if (!businessProfileId) return;
+    setSaveMessage(null);
+    setError(null);
+
+    try {
+      const fresh = await startFreshConversation({
+        sectionKey,
+        businessProfileId,
+      }).unwrap();
+      applyOpenedConversation({
+        ...fresh,
+        savedOutputId: null,
+        label: "",
+        latestGeneration: null,
+      });
+      setResult(null);
+      setGenerationId(null);
+      setSaveLabel("");
+      setSelectedSavedId(null);
+      setSaveMessage("Started a new chat.");
+    } catch {
+      setError("Could not start a new chat.");
+    }
+  };
+
+  // Only block UI when there is no cached conversation yet (not on background refetch).
   const loadingConversation =
-    !businessProfileId ||
-    isLoadingConversation ||
-    (isFetchingConversation && messages.length === 0);
+    !businessProfileId || (isLoadingConversation && !conversation);
 
   const showEmptyPlaceholder =
-    !loadingConversation && messages.length === 0;
+    !loadingConversation && displayMessages.length === 0;
 
   return (
     <div className="text-white flex items-start justify-center">
       <div className="w-full md:flex gap-4">
         <div className="w-full md:w-[65%] flex flex-col bg-[#111118] border border-[#2a2a3a] rounded-xl overflow-hidden min-h-[520px]">
-          <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+          <div className="flex items-center justify-between gap-2 px-4 pt-4 pb-2">
             <span className="flex items-center gap-1.5 bg-[#6c5ce7] text-white text-[11px] md:text-[12px] font-semibold px-2.5 py-2 rounded-md">
               <Sparkles size={12} />
               AI {sectionName} Tool
             </span>
+            <button
+              type="button"
+              onClick={() => void handleNewChat()}
+              disabled={busy || !businessProfileId}
+              className="text-[11px] text-[#a78bfa] hover:text-[#c4b5fd] disabled:opacity-40"
+            >
+              New chat
+            </button>
           </div>
 
           <div className="flex-1 px-4 py-3 overflow-y-auto min-h-[320px] max-h-[480px] scrollbar-hide">
-            {loadingConversation && messages.length === 0 && (
+            {loadingConversation && displayMessages.length === 0 && (
               <p className="text-[12px] text-[#555] text-center py-16">
                 Loading conversation...
               </p>
@@ -600,9 +651,9 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
               </div>
             )}
 
-            {messages.length > 0 && (
+            {displayMessages.length > 0 && (
               <div className="flex flex-col gap-3">
-                {messages.map((msg) => {
+                {displayMessages.map((msg) => {
                   const isUser = msg.role === "user";
                   return (
                     <div
@@ -870,7 +921,7 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
                         )}
                         {stepCount > 0 && (
                           <p className="text-[10px] text-[#7c6ff7] mt-1">
-                            {stepCount} action steps · tap to view
+                            {stepCount} action steps · tap to open in chat
                           </p>
                         )}
                       </button>
@@ -903,65 +954,6 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
           </p>
         </div>
       </div>
-
-      {viewingConversation && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/70"
-            onClick={() => setViewingConversation(null)}
-          />
-          <div className="relative w-full max-w-lg max-h-[80vh] bg-[#12121a] border border-[#2a2a3a] rounded-xl overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2a3a]">
-              <h3 className="text-[14px] font-semibold text-white">
-                Saved conversation
-              </h3>
-              <button
-                type="button"
-                onClick={() => setViewingConversation(null)}
-                className="text-[#666] hover:text-white"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {viewingConversation.length === 0 && (
-                <p className="text-[12px] text-[#666] text-center py-8">
-                  No conversation messages linked to this output.
-                </p>
-              )}
-              {viewingConversation.map((msg) => {
-                const isUser = msg.role === "user";
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex ${isUser ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`max-w-[90%] rounded-2xl px-3 py-2 text-[12px] leading-relaxed ${
-                        isUser
-                          ? "bg-[#6c5ce7] text-white"
-                          : "bg-[#1a1a24] border border-[#2a2a3a] text-[#ddd]"
-                      }`}
-                    >
-                      {msg.content && (
-                        <p className="whitespace-pre-wrap">{msg.content}</p>
-                      )}
-                      {msg.imageUrl && (
-                        <ChatMessageImage imageUrl={msg.imageUrl} isUser={isUser} />
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-              {result && (
-                <div className="pt-3 border-t border-[#2a2a3a]">
-                  <AIIdeaValidation result={result} compact />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -27,9 +27,11 @@ const GoogleCallbackClient = () => {
     }
 
     const email = parseJwtPayload(tokens.access_token).email ?? "";
-    persistAuthSession(dispatch, tokens, email);
-    message.success("Logged in with Google");
-    router.replace("/dashboard");
+    void (async () => {
+      await persistAuthSession(dispatch, tokens, email);
+      message.success("Logged in with Google");
+      router.replace("/dashboard");
+    })();
   }, [tokens, dispatch, router]);
 
   if (tokens) {

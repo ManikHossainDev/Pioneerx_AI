@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Providers from '../lib/Providers';
 import SplashWrapper from "@/components/UI/SplashWrapper";
+import CookieConsent from "@/components/UI/CookieConsent";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -42,6 +43,7 @@ export default function RootLayout({
           <SplashWrapper>
             {children}
           </SplashWrapper>
+          <CookieConsent />
         </Providers>
       </body>
     </html>

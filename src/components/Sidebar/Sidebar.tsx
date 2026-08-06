@@ -35,7 +35,10 @@ import {
   Lock,
   type LucideIcon,
 } from "lucide-react";
-import { useGetSectionsQuery } from "@/redux/api/pioneerxApi";
+import { pioneerxApi, useGetSectionsQuery } from "@/redux/api/pioneerxApi";
+import { useGetProfileContextQuery } from "@/redux/api/businessProfileApi";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { selectToken } from "@/redux/features/auth/authSlice";
 import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
@@ -80,11 +83,35 @@ interface SidebarProps {
 const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const token = useAppSelector(selectToken);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [upgradePrompt, setUpgradePrompt] = useState<string | null>(null);
   const { data: sections = [], isLoading } = useGetSectionsQuery();
+  const { data: profileContext } = useGetProfileContextQuery(undefined, {
+    skip: !token,
+  });
+  const businessProfileId = profileContext?.activeProfile?.id;
 
   const isDashboardActive = pathname === "/" || pathname === "/dashboard";
+
+  const prefetchSection = (sectionKey: string) => {
+    if (!businessProfileId) return;
+    void dispatch(
+      pioneerxApi.util.prefetch(
+        "getOrCreateConversation",
+        { sectionKey, businessProfileId },
+        { force: false },
+      ),
+    );
+    void dispatch(
+      pioneerxApi.util.prefetch(
+        "getSavedOutputs",
+        { sectionKey },
+        { force: false },
+      ),
+    );
+  };
 
   const groupedSections = CATEGORY_ORDER.map((category) => ({
     section: CATEGORY_LABELS[category] ?? category,
@@ -241,10 +268,14 @@ const Sidebar = ({ isMobile, isOpen, onClose }: SidebarProps) => {
                   onClick={() => {
                     if (isMobile && onClose) onClose();
                   }}
+                  onMouseEnter={() => {
+                    setHoveredItem(itemKey);
+                    prefetchSection(item.key);
+                  }}
+                  onFocus={() => prefetchSection(item.key)}
+                  onMouseLeave={() => setHoveredItem(null)}
                 >
                   <div
-                    onMouseEnter={() => setHoveredItem(itemKey)}
-                    onMouseLeave={() => setHoveredItem(null)}
                     className={`
                       flex items-center gap-[9px]
                       px-[10px] py-[5px]

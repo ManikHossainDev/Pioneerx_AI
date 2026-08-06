@@ -73,6 +73,9 @@ export interface Conversation {
   createdAt: string;
   updatedAt: string;
   messages: ConversationMessage[];
+  /** When set, the next Save updates this SavedOutput instead of creating a new one */
+  savedOutputId?: string | null;
+  label?: string | null;
   section?: {
     id: string;
     key: string;

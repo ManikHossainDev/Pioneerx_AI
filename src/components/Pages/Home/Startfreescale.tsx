@@ -191,13 +191,13 @@ const Startfreescale = () => {
   }
 
   async function onPlanClick(plan: MarketingPlan) {
-    // Free → dashboard (or sign in first)
+    // Free → first section (dashboard nav is hidden)
     if (!plan.tierKey) {
       if (!token) {
         setAuthOpen(true);
         return;
       }
-      router.push("/dashboard");
+      router.push("/idea-validation");
       return;
     }
 
@@ -215,7 +215,8 @@ const Startfreescale = () => {
     <section className="w-full h-full py-6 sm:py-10 px-1 md:px-4 ">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 xl:gap-10">
         {plans.map((plan, idx) => {
-          const loading = busyTier === plan.tierKey;
+          // Free tierKey is null — don't treat idle (busyTier=null) as loading
+          const loading = busyTier !== null && busyTier === plan.tierKey;
           return (
             <div
               key={idx}
@@ -290,6 +291,16 @@ const Startfreescale = () => {
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-6 sm:mt-8 mx-auto max-w-2xl rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3.5 text-center">
+        <p className="text-sm font-medium text-amber-200 mb-1">
+          Refund policy
+        </p>
+        <p className="text-xs sm:text-sm text-amber-100/80 leading-relaxed">
+          All payments made through Stripe are final. Subscriptions and one-time
+          charges are non-refundable once payment is completed.
+        </p>
       </div>
 
       <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
