@@ -8,7 +8,7 @@ const nextConfig = {
       },
     ],
   },
-  // Frontend host (sobhoy) proxies API → local Nest so Google OAuth + fetch stay same-origin.
+  // Optional: same-origin /api/v1 → Nest (set BACKEND_PROXY_URL when using rewrites).
   async rewrites() {
     const backend =
       process.env.BACKEND_PROXY_URL || "http://127.0.0.1:8010";

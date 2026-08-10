@@ -3,10 +3,9 @@ import { setUser } from "@/redux/features/auth/authSlice";
 import type { AuthTokens } from "@/types/auth";
 import { userFromToken } from "@/utils/jwt";
 import { baseApi } from "@/redux/api/baseApi";
+import { getApiBaseUrl } from "@/lib/apiBase";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://mohaimin8003.sobhoy.com/api/v1";
+const API_BASE = getApiBaseUrl();
 
 /**
  * Persist tokens + clear active chat pointers so section chats start fresh

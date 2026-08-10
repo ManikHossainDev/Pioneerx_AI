@@ -1,11 +1,12 @@
 "use client";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "../store";
+import { getApiBaseUrl } from "@/lib/apiBase";
 
 export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || "https://mohaimin8003.sobhoy.com/api/v1",
+    baseUrl: getApiBaseUrl(),
     prepareHeaders: (headers, { getState }) => {
       // Extract the token correctly by parsing the stringified token object
       const token = (getState() as RootState).auth.token?.replace(/['"]+/g, "");
