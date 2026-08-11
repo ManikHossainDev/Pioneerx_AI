@@ -50,7 +50,7 @@ const Register: React.FC = () => {
                 <h2 className="text-xl md:text-2xl font-semibold text-white text-center ">
                   Create an Account
                 </h2>
-                <p className="text-center pb-2 text-white">Hello there, Let's start your journey with us.</p>
+                <p className="text-center pb-2 text-white">Hello there, Let&apos;s start your journey with us.</p>
                 <Form
                   layout="vertical"
                   onFinish={onFinish}

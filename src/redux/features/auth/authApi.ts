@@ -23,12 +23,23 @@ const authApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      transformResponse: (res: any) => {
-        const data = res?.data ?? res;
-        if (data && data.access_token && data.refresh_token) {
+      transformResponse: (res: {
+        data?: MagicLinkResponse;
+        message?: string;
+      }) => {
+        const data = res?.data ?? (res as unknown as MagicLinkResponse);
+        if (
+          data &&
+          typeof data === "object" &&
+          "access_token" in data &&
+          "refresh_token" in data
+        ) {
           return data as AuthTokens;
         }
-        return data ?? { message: res?.message ?? "Check your email" };
+        if (data && typeof data === "object" && "message" in data) {
+          return data as { message: string };
+        }
+        return { message: res?.message ?? "Check your email" };
       },
     }),
 
@@ -41,7 +52,10 @@ const authApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      transformResponse: (res: any) => res?.data ?? res,
+      transformResponse: (res: {
+        data?: { trialEndsAt: string };
+        trialEndsAt?: string;
+      }) => res?.data ?? { trialEndsAt: res.trialEndsAt as string },
     }),
 
     verifyMagicLink: builder.query<AuthTokens, string>({

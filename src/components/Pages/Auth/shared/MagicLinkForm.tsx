@@ -12,6 +12,7 @@ import { message } from "antd";
 import { useAppDispatch } from "@/redux/hooks";
 import { persistAuthSession } from "@/lib/authSession";
 import { getPostLoginPath } from "@/lib/postLoginPath";
+import type { AuthTokens } from "@/types/auth";
 
 interface MagicLinkFormProps {
   initialEmail?: string;
@@ -67,7 +68,7 @@ const MagicLinkForm = ({
       }).unwrap();
 
       if (res && typeof res === "object" && "access_token" in res && "refresh_token" in res) {
-        await persistAuthSession(dispatch, res as any, email.trim());
+        await persistAuthSession(dispatch, res as AuthTokens, email.trim());
 
         if (code) {
           try {
