@@ -53,10 +53,10 @@ function SuccessInner() {
           {isLoading
             ? "Confirming your Stripe session…"
             : isError
-              ? "We could not confirm the session yet. Your plan will update when the Stripe webhook arrives — refresh the dashboard in a moment."
+              ? "We could not confirm the session yet. Your plan will update when the Stripe webhook arrives — open Idea & Validation in a moment."
               : data?.tier
                 ? `Your ${data.tier.replace("_", " ")} plan is being activated. Credits refresh on the next billing cycle webhook.`
-                : "Your subscription is being activated. Open the dashboard to start using paid features."}
+                : "Your subscription is being activated. Continue to Idea & Validation to start using paid features."}
         </p>
         {!token && (
           <p className="text-xs text-amber-300/90 mb-4">
@@ -74,10 +74,10 @@ function SuccessInner() {
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            href="/dashboard"
+            href="/idea-validation"
             className="rounded-full bg-[#6C5CE7] hover:bg-[#5a4dd4] px-6 py-2.5 text-sm font-semibold text-white"
           >
-            Go to dashboard
+            Go to Idea &amp; Validation
           </Link>
           <Link
             href="/billing"
