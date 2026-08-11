@@ -9,6 +9,7 @@ import {
   persistAuthSession,
   tokensFromSearchParams,
 } from "@/lib/authSession";
+import { getPostLoginPath } from "@/lib/postLoginPath";
 import { parseJwtPayload } from "@/utils/jwt";
 
 const GoogleCallbackClient = () => {
@@ -30,7 +31,7 @@ const GoogleCallbackClient = () => {
     void (async () => {
       await persistAuthSession(dispatch, tokens, email);
       message.success("Logged in with Google");
-      router.replace("/dashboard");
+      router.replace(getPostLoginPath());
     })();
   }, [tokens, dispatch, router]);
 

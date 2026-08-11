@@ -1,4 +1,4 @@
-/** Safe in-app path after login (`?next=/branding`). Falls back to /dashboard. */
+/** Safe in-app path after login (`?next=/branding`). Falls back to Idea & Validation. */
 export function getPostLoginPath(search?: string): string {
   const q =
     search ??
@@ -7,5 +7,5 @@ export function getPostLoginPath(search?: string): string {
   if (next && next.startsWith("/") && !next.startsWith("//")) {
     return next;
   }
-  return "/dashboard";
+  return "/idea-validation";
 }
