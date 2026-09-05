@@ -29,7 +29,13 @@ function SuccessInner() {
     refetchSub()
       .unwrap()
       .then(() => {
-        dispatch(pioneerxApi.util.invalidateTags(["CreditStatus", "Payment"]));
+        dispatch(
+          pioneerxApi.util.invalidateTags([
+            "CreditStatus",
+            "Payment",
+            "Sections",
+          ]),
+        );
       })
       .catch(() => {
         /* webhook may still be in flight */

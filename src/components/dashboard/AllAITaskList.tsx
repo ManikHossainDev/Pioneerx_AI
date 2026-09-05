@@ -128,6 +128,7 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
 
   const { data: globalCredit } = useGetCreditStatusQuery(undefined, {
     skip: !token,
+    refetchOnMountOrArgChange: true,
   });
 
   const {
@@ -768,7 +769,7 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
                       ? `Describe the ${imageType === "logo" ? "logo" : "business card"}...`
                       : "Where We Mind Your Business"
                   }
-                  disabled={busy || !businessProfileId || creditsExhausted}
+                  disabled={busy || !businessProfileId}
                   className="w-full bg-[#18181f] border border-[#2a2a3a] rounded-lg text-[#ccc] placeholder-[#555] text-[13px] px-3 py-2.5 outline-none focus:border-[#6c5ce7] transition-colors disabled:opacity-60"
                 />
               </div>
@@ -821,6 +822,12 @@ const AllAITaskList = ({ sectionKey, sectionName }: AllAITaskListProps) => {
               </button>
               */}
             </div>
+
+            {creditsExhausted && !error && (
+              <p className="mt-2 text-[12px] text-red-400">
+                No credits remaining. Upgrade your plan or wait for the next reset.
+              </p>
+            )}
 
             {error && (
               <p className="mt-2 text-[12px] text-red-400">{error}</p>

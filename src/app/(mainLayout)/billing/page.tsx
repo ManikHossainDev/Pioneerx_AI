@@ -12,6 +12,8 @@ import {
 import { useAppSelector } from "@/redux/hooks";
 import { selectToken } from "@/redux/features/auth/authSlice";
 import { getApiErrorMessage } from "@/utils/apiError";
+// import DeleteAccountConfirmModal from "@/components/Auth/DeleteAccountConfirmModal";
+// import { useDeleteMyAccount } from "@/hooks/useDeleteMyAccount";
 
 function formatMoney(amount: number, currency: string) {
   return `${(amount / 100).toFixed(2)} ${currency.toUpperCase()}`;
@@ -36,6 +38,9 @@ export default function BillingManagePage() {
   const [createPortal, { isLoading: portalLoading }] =
     useCreatePortalSessionMutation();
   const [busy, setBusy] = useState(false);
+  // const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  // const { confirmDelete: confirmDeleteAccount, isDeleting: isDeletingAccount } =
+  //   useDeleteMyAccount();
 
   async function openPortal() {
     setBusy(true);
@@ -188,11 +193,35 @@ export default function BillingManagePage() {
         )}
       </div>
 
+      {/* <div className="rounded-2xl border border-red-500/25 bg-red-500/5 p-5 mt-5">
+        <h2 className="text-sm font-semibold text-red-300 mb-1.5">
+          Delete my account
+        </h2>
+        <p className="text-sm text-[#9a9aab] leading-relaxed mb-4">
+          Permanently remove your PioneerX account and data. Stripe
+          subscriptions are cancelled. App Store / Play billing must be
+          cancelled in those stores.
+        </p>
+        <button
+          type="button"
+          onClick={() => setDeleteAccountOpen(true)}
+          className="rounded-lg border border-red-500/40 px-4 py-2 text-xs font-semibold text-red-300 hover:bg-red-500/10"
+        >
+          Delete my account
+        </button>
+      </div> */}
+
       <p className="mt-6 text-center">
         <Link href="/dashboard" className="text-sm text-[#a78bfa] hover:underline">
           ← Back to dashboard
         </Link>
       </p>
+      {/* <DeleteAccountConfirmModal
+        open={deleteAccountOpen}
+        isDeleting={isDeletingAccount}
+        onCancel={() => setDeleteAccountOpen(false)}
+        onConfirm={confirmDeleteAccount}
+      /> */}
     </div>
   );
 }

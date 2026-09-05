@@ -133,6 +133,17 @@ const authApi = baseApi.injectEndpoints({
         body: data,
       }),
     }),
+
+    // deleteMyAccount: builder.mutation<{ deleted: boolean }, void>({
+    //   query: () => ({
+    //     url: "/auth/me",
+    //     method: "DELETE",
+    //   }),
+    //   transformResponse: (res: {
+    //     data?: { deleted: boolean };
+    //     deleted?: boolean;
+    //   }) => res?.data ?? { deleted: Boolean(res?.deleted) },
+    // }),
   }),
 });
 
@@ -150,4 +161,5 @@ export const {
   useGetSingleUserQuery,
   useGetAllServicesQuery,
   useResetPasswordMutation,
+  // useDeleteMyAccountMutation,
 } = authApi;

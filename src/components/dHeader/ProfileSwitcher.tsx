@@ -11,6 +11,7 @@ import {
   LuPlus,
   LuStar,
   LuTrash2,
+  // LuUserX,
 } from "react-icons/lu";
 import { ImSpinner6 } from "react-icons/im";
 import { toast } from "sonner";
@@ -34,6 +35,8 @@ import CreateBusinessProfileForm from "@/components/dashboard/CreateBusinessProf
 import LeaveReviewModal from "./LeaveReviewModal";
 import LogoutConfirmModal from "@/components/Header/LogoutConfirmModal";
 import DeleteProfileConfirmModal from "./DeleteProfileConfirmModal";
+// import DeleteAccountConfirmModal from "@/components/Auth/DeleteAccountConfirmModal";
+// import { useDeleteMyAccount } from "@/hooks/useDeleteMyAccount";
 
 const ProfileSwitcher = () => {
   const dispatch = useAppDispatch();
@@ -47,8 +50,11 @@ const ProfileSwitcher = () => {
   );
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  // const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [profileToDelete, setProfileToDelete] =
     useState<BusinessProfile | null>(null);
+  // const { confirmDelete: confirmDeleteAccount, isDeleting: isDeletingAccount } =
+  //   useDeleteMyAccount();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, isFetching } = useGetProfileContextQuery(undefined, {
@@ -324,6 +330,18 @@ const ProfileSwitcher = () => {
                   <LuLogOut size={16} />
                   Log out
                 </button>
+
+                {/* <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    setDeleteAccountOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-[#f87171] hover:bg-[#1c1d24] rounded-md text-sm transition-colors"
+                >
+                  <LuUserX size={16} />
+                  Delete my account
+                </button> */}
               </>
             )}
           </div>
@@ -348,6 +366,12 @@ const ProfileSwitcher = () => {
         onCancel={() => setProfileToDelete(null)}
         onConfirm={confirmDelete}
       />
+      {/* <DeleteAccountConfirmModal
+        open={deleteAccountOpen}
+        isDeleting={isDeletingAccount}
+        onCancel={() => setDeleteAccountOpen(false)}
+        onConfirm={confirmDeleteAccount}
+      /> */}
     </div>
   );
 };

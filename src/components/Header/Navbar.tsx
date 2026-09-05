@@ -7,12 +7,15 @@ import { Drawer, Button } from "antd";
 import { usePathname } from "next/navigation";
 import { AiOutlineMenu } from "react-icons/ai";
 import { LuChevronDown, LuLogOut } from "react-icons/lu";
+// import { LuUserX } from "react-icons/lu";
 import logo from "@/assets/logo/logo.png";
 import userIcon from "@/assets/logo/user.png";
 import { useTheme } from "next-themes";
 import ActiveLink from "./ActiveLink";
 import AuthModal from "./AuthModal";
 import LogoutConfirmModal from "./LogoutConfirmModal";
+// import DeleteAccountConfirmModal from "@/components/Auth/DeleteAccountConfirmModal";
+// import { useDeleteMyAccount } from "@/hooks/useDeleteMyAccount";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import {
   logout,
@@ -31,6 +34,9 @@ const Navbar = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  // const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  // const { confirmDelete: confirmDeleteAccount, isDeleting: isDeletingAccount } =
+  //   useDeleteMyAccount();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -151,6 +157,17 @@ const Navbar = () => {
                     <LuLogOut size={14} />
                     Logout
                   </button>
+                  {/* <button
+                    type="button"
+                    onClick={() => {
+                      setAccountOpen(false);
+                      setDeleteAccountOpen(true);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[#f87171] hover:bg-white/5"
+                  >
+                    <LuUserX size={14} />
+                    Delete my account
+                  </button> */}
                 </div>
               )}
             </div>
@@ -255,6 +272,17 @@ const Navbar = () => {
                 <LuLogOut size={14} />
                 Logout
               </button>
+              {/* <button
+                type="button"
+                onClick={() => {
+                  setIsDrawerOpen(false);
+                  setDeleteAccountOpen(true);
+                }}
+                className="flex items-center justify-center gap-2 text-sm border border-red-500/40 text-red-400 rounded-md px-3 py-2"
+              >
+                <LuUserX size={14} />
+                Delete my account
+              </button> */}
             </>
           ) : (
             <button
@@ -300,6 +328,12 @@ const Navbar = () => {
         onContinue={() => setLogoutConfirmOpen(false)}
         onLogout={handleLogout}
       />
+      {/* <DeleteAccountConfirmModal
+        open={deleteAccountOpen}
+        isDeleting={isDeletingAccount}
+        onCancel={() => setDeleteAccountOpen(false)}
+        onConfirm={confirmDeleteAccount}
+      /> */}
     </nav>
   );
 };
